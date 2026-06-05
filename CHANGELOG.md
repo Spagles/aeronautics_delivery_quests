@@ -1,0 +1,46 @@
+### Aeronautics Delivery Quests (ADQ) - v1.0.2 Changelog
+
+#### Quest & Location Generation Configuration Toggles
+- **Generation Mode Toggle**: Replaced the sliding scale `customQuestsChance` with an enum-based `questGenerationMode` config toggle (`CUSTOM` or `PROCEDURAL`).
+  - *CUSTOM*: Spawns structured quests exactly as defined in `custom_quests.json`.
+  - *PROCEDURAL*: Dynamically mixes names, descriptions, mass classes, schematics, and rewards from across the pool of valid templates in `custom_quests.json`.
+- **Location Mode Selector**: Replaced `randomQuestGen` with an enum-based `questLocationMode` config toggle (`VILLAGE`, `ANY_STRUCTURE`, or `RANDOM`).
+  - *ANY_STRUCTURE*: Performs an Overworld-wide search using the registries to locate any valid registered structure (top level only) for cargo pickup and delivery.
+
+#### Expanded Default Assets & Balanced Economy
+- **6 Default Cargo Schematics**: Expanded the programmatically generated cargo NBT schematics list to 6, adding `light_food_crate`, `medium_ore_crate`, and `heavy_industrial_boiler`.
+- **6 Default Packaged Quests**: Expanded example templates to 6 default quests in `custom_quests.json`.
+- **Balanced Emerald Economy**: Reduced default emerald payouts for all 6 example quests to a balanced range of 10–50 emeralds. Scaled default config payouts for procedural generation to 15 (Light), 30 (Medium), and 50 (Heavy).
+
+#### Command Cooldowns & Concurrency Safety
+- **5-Second Command Cooldown**: Enforces a 5-second cooldown on all player `/adq` command executions.
+- **Quest Generation Lock**: Implemented an execution lock (`AtomicBoolean`) to prevent starting quest generation twice concurrently, with dynamic play button greying out on the client UI.
+
+#### Config Auto-Healing
+- **Auto-Healing Configuration**: If an outdated version of `custom_quests.json` is detected (with old legacy emerald payouts of `300` or `640`), it is automatically upgraded and rewritten with the balanced 1.0.2 rewards on server startup.
+
+#### Quest Board Clipboard UI Polish
+- **Multi-Reward Display**: Enhanced the Quest Board clipboard to display all reward items. Details are parsed into a clean comma-separated list and wrapped dynamically to fit within ledger slots and the active quest details view.
+- **Ledger Spacing Refactor**: Reduced quest items displayed per page from 3 to 2, scaling card heights to 68px (originally 48px) to cleanly prevent reward text from spilling over.
+- **Dynamic State Updates**: Accept buttons refresh active states dynamically when a player's quest cooldown ticks down to zero.
+
+#### C2ME Concurrency & Thread Safety
+- **Asynchronous Random Safety**: Replaced thread-bound `level.getRandom()` with isolated `RandomSource.create()` inside the background quest generation thread. This completely resolves threading crashes and `ConcurrentModificationException` conflicts when running alongside the **C2ME (Concurrent Chunk Management Engine)** mod.
+
+---
+
+### Aeronautics Delivery Quests (ADQ) - v1.0.1 Changelog
+
+#### Core Mechanics & Standalone Architecture
+- **Standalone Mod**: Stripped all FTB Chunks, Teams, and Library requirements from compilation, config, and runtime scripts, making ADQ 100% independent.
+- **Safe Air Spawning**: Re-engineered physical spawning to check solid surface footprints and ensure 100% empty air columns. Cargo spawns 3 blocks in the air and drops cleanly under gravity.
+- **Vertical Spawning Safety Fallback**: Added a sky fallback (spawns cargo 4 blocks above solid ground) if flat ground is unavailable, preventing clipping into village structures/ground. Removed legacy floating grass block placements.
+
+#### Custom Quest JSON Configurations
+- **Admins JSON Pool (`custom_quests.json`)**: Added a dedicated GSON database at `config/aeronautics_delivery_quests/custom_quests.json` (auto-generates example templates on startup) allowing custom names, descriptions, mass classes, NBT templates, and rewards.
+- **Mix Ratio Tuning**: Added `customQuestsChance` (default 0.5) double config parameter under `ADQConfig` to set the percentage ratio of custom JSON quests versus procedural generation.
+- **Instant Hot-Reloads**: Integrated JSON reloader directly into the `/adq reload` command and chest-GUI reload button for real-time refreshes without a server restart.
+
+#### Exploit Protection & Chest-GUI Command Panel
+- **Anti-Loot Balance**: Swapped `minecraft:netherite_block` in the Heavy schematic with `minecraft:polished_deepslate` and programmed the manager to overwrite legacy/OP config files on startup. Guaranteed all default schematics use exactly `simulated:rope_connector`.
+- **Chest-GUI Redesign**: Restructured the board to limit quest maps to slots 0–17 (respecting `maxActiveQuestsPerBoard`). Converted the bottom row (slots 18–25) into a command dashboard for Reissuing Compass, Cancelling Contract, and OP-level 2 Admin Commands (Generate, Delete All, Reload).

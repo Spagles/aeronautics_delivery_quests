@@ -1,0 +1,29 @@
+# Gradle caches and build outputs
+.gradle/
+build/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.settings/
+.project
+.classpath
+bin/
+out/
+
+# Compilation outputs and logs
+*.class
+*.log
+*.bak
+
+# Minecraft run directories and generated run files
+run/
+runs/
+gametests/
+src/generated/resources/
+
+# OS specific files
+Thumbs.db
+.DS_Store
