@@ -51,36 +51,8 @@ Best of all: **ADQ is 100% server-side optional.** Clients do not need to downlo
 
 ---
 
-## 📦 Automated CurseForge Publishing
+## 🛠️ Developer & Backend Documentation
 
-ADQ is equipped with the modern `mod-publish-plugin` to automate releases and automatically declare all mod relations/dependencies on CurseForge upon upload.
+For compilation instructions, technical architecture details, and automated CurseForge publishing guidelines, please refer to [DEVELOPER.md](file:///c:/Users/kylet/curseforge/minecraft/Instances/Technological%20Nomadic%20Adventures/aeronautics_delivery_quests/DEVELOPER.md).
 
-### 1. Prerequisites Setup
-You need to supply your CurseForge project credentials. For security, these should be added to your **global** `gradle.properties` (typically located at `~/.gradle/gradle.properties`) or your local one:
-
-```properties
-# CurseForge Integration Credentials
-curseforge_project_id=YOUR_PROJECT_ID
-curseforge_api_key=YOUR_CURSEFORGE_API_KEY
-```
-
-### 2. Supported Platform Relations
-The publishing plugin automatically configures the uploaded `.jar` with compatibility metadata and automatically attaches the following **required dependencies** to your CurseForge upload page:
-*   **Minecraft:** `1.21.1`
-*   **Mod Loader:** `NeoForge`
-*   **Relations/Dependencies:**
-    *   `create` (Create Mod)
-    *   `create-aeronautics` (Create: Aeronautics)
-
-### 3. Publishing Commands
-To trigger compilation, staging, and upload, execute the following commands in the project root:
-
-*   **Dry Run Upload (Simulation):** Verify credentials, dependencies, and payload structure without doing a live upload:
-    ```bash
-    ./gradlew publishMods --dry-run
-    ```
-*   **Live Release:** Build and upload a new stable version to CurseForge:
-    ```bash
-    ./gradlew publishMods
-    ```
 
