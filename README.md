@@ -52,10 +52,4 @@ Best of all: **ADQ is 100% server-side optional.** Clients do not need to downlo
 *   `/adq deleteall` - `[Admin]` Purge all quests from the board.
 *   `/adq reload` - `[Admin]` Reload quests, player cooldowns, and custom quest templates from disk.
 
----
-
-## 🛠️ Developer & Backend Documentation
-
-For compilation instructions, technical architecture details, and automated CurseForge publishing guidelines, please refer to [DEVELOPER.md](file:///c:/Users/kylet/curseforge/minecraft/Instances/Technological%20Nomadic%20Adventures/aeronautics_delivery_quests/DEVELOPER.md).
-
 
