@@ -9,9 +9,9 @@ Best of all: **ADQ is 100% server-side optional.** Clients do not need to downlo
 
 ## 🚀 Key Features
 
-*   **📦 Dynamic & Custom Quests:** Accessible via `/adq`, players browse available contracts in **Light**, **Medium**, and **Heavy** weight classes with dynamically calculated routes and tailored rewards. Creators can design custom quest entries in `custom_quests.json` using custom NBT templates!
+*   **📦 Dynamic & Custom Quests:** Accessible to players via the **Delivery Quests Table** block (and `/adq` for administrators), players browse available contracts in **Light**, **Medium**, and **Heavy** weight classes with dynamically calculated routes and tailored rewards. Creators can design custom quest entries in `custom_quests.json` using custom NBT templates!
 *   **⚖️ Sable Physics Integration:** Dynamically loads schematic templates (such as crates, pallets, and secure containers) and compiles them into **Sable dynamic physics rigid bodies** when secured.
-*   **🧭 Virtual Calibration Compasses:** Issues vanilla Quest Compasses that point dynamically to cargo pickups or destination locations. Lost your compass? Retrieve a replacement instantly using `/adq compass` or the board's GUI control panel.
+*   **🧭 Virtual Calibration Compasses:** Issues vanilla Quest Compasses that point dynamically to cargo pickups or destination locations. Lost your compass? Retrieve a replacement instantly using the board's GUI control panel inside the table's menu.
 *   **🔒 Damage Penalties & Shielding:** Configurable invulnerability (`enableCargoInvulnerability`). When off (default), cargo blocks can break, and any missing mass proportionally reduces your reward payout! When on, cargo is fully shielded from breakages, explosions, and mob griefing.
 *   **⏳ Board Expirations & Player Cooldowns:** Unaccepted contracts on the board cycle out after 60 minutes. A 1-hour player cooldown prevents quest-spamming (automatically bypassed for admins/operators).
 
@@ -40,9 +40,12 @@ Best of all: **ADQ is 100% server-side optional.** Clients do not need to downlo
 
 ## 🛠️ Command Reference
 
-*   `/adq` - Open the virtual Aeronautics Quest Board & command control panel.
-*   `/adq cancel` - Abandon your current contract (recalls physical cargo and clears compasses).
-*   `/adq compass` - Re-issue your Quest Delivery Compass (only if on an active quest and you don't already have one).
+> [!NOTE]
+> All `/adq` commands require operator permissions (Level 2+). Regular players must use the physical **Delivery Quests Table** block to open the board, cancel contracts, or reissue compasses.
+
+*   `/adq` - `[Admin]` Open the virtual Aeronautics Quest Board & command control panel.
+*   `/adq cancel` - `[Admin]` Abandon your current contract (recalls physical cargo and clears compasses).
+*   `/adq compass` - `[Admin]` Re-issue your Quest Delivery Compass (only if on an active quest and you don't already have one).
 *   `/adq generate` - `[Admin]` Force-triggers a background procedural quest generation.
 *   `/adq complete` - `[Admin]` Force-completes your active delivery contract.
 *   `/adq delete <index>` - `[Admin]` Cleanly force-deletes a specific board quest.

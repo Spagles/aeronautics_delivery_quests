@@ -216,6 +216,7 @@ public class ADQEventHandler {
     private static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("adq")
+                .requires(source -> source.hasPermission(2))
                 .executes(ADQEventHandler::openBoardCommand)
                 .then(Commands.literal("cancel")
                     .executes(ADQEventHandler::cancelQuestCommand)

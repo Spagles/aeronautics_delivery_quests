@@ -86,7 +86,7 @@ public class DeliveryTracker {
 
                                 MarkerManager.updateCompassToDelivery(player, quest);
                             } else {
-                                player.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Broken! §fFailed to compile Aeronautics physics contraption. Cancel contract with /adq cancel."));
+                                player.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Broken! §fFailed to compile Aeronautics physics contraption. Cancel contract via the Quest Board."));
                             }
                         }
                     } else {
