@@ -1,3 +1,20 @@
+### Aeronautics Delivery Quests (ADQ) - v1.0.3 Changelog
+
+#### GUI Polish & Interface Polish
+- **Ledger Cooldown Rename**: Changed the clipboard label "Cooldown" to "Next Quest In" to make cooldown status clearer.
+- **Route & Mass Line Splitting**: Formatted the quest card text so that Mass and Route are on separate lines per quest card, removing the vertical pipe (`|`) character.
+- **Flight Manual Simplification**: Simplified the Flight Manual screen to show a unified description help section instead of the multi-step gameplay rules.
+
+#### Predefined Coordinate Support (custom_quests.json)
+- **pickupPos and dropoffPos Parameter**: Added optional `pickupPos` and `dropoffPos` string parameters (blank by default on all default quests).
+- **Coordinate Formats**: Supports `x,y,z` or `x,z` formats (queries the surface heightmap when Y is omitted or 0). If valid coordinates are specified, quest generation skips the async structure search and generates the quest at the exact location.
+
+#### Aeronautics Recipe Integration & Bug Fixes
+- **Table Crafting Recipe**: Updated the crafting recipe for the delivery quests table to require a Contraption Diagram (`simulated:contraption_diagram`) at the top, a Compass (`minecraft:compass`) in the middle, and any wood slab (`#minecraft:wooden_slabs` tag) at the bottom.
+- **Occlusion Fix**: Added `.noOcclusion()` properties to the delivery quests table block, fixing the see-through ground bug beneath it.
+
+---
+
 ### Aeronautics Delivery Quests (ADQ) - v1.0.2 Changelog
 
 #### Quest & Location Generation Configuration Toggles
