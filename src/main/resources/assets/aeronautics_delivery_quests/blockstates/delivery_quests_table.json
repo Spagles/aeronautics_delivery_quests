@@ -1,29 +1,18 @@
 {
   "variants": {
-    "facing=down": {
-      "model": "aeronautics_delivery_quests:block/delivery_quests_table/block",
-      "x": 180
-    },
-    "facing=east": {
-      "model": "aeronautics_delivery_quests:block/delivery_quests_table/block",
-      "x": 90,
-      "y": 90
-    },
     "facing=north": {
-      "model": "aeronautics_delivery_quests:block/delivery_quests_table/block",
-      "x": 90
+      "model": "aeronautics_delivery_quests:block/delivery_quests_table/block"
     },
     "facing=south": {
       "model": "aeronautics_delivery_quests:block/delivery_quests_table/block",
-      "x": 90,
       "y": 180
     },
-    "facing=up": {
-      "model": "aeronautics_delivery_quests:block/delivery_quests_table/block"
+    "facing=east": {
+      "model": "aeronautics_delivery_quests:block/delivery_quests_table/block",
+      "y": 90
     },
     "facing=west": {
       "model": "aeronautics_delivery_quests:block/delivery_quests_table/block",
-      "x": 90,
       "y": 270
     }
   }

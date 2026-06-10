@@ -33,10 +33,6 @@ public class ADQConfig {
     public static final ModConfigSpec.IntValue MIN_START_DISTANCE;
     public static final ModConfigSpec.EnumValue<QuestGenerationMode> QUEST_GEN_MODE;
 
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> LIGHT_REWARDS;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> MEDIUM_REWARDS;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> HEAVY_REWARDS;
-
     public static final ModConfigSpec.BooleanValue ANNOUNCE_ACCEPT;
     public static final ModConfigSpec.BooleanValue ANNOUNCE_SECURE;
     public static final ModConfigSpec.BooleanValue ANNOUNCE_COMPLETE;
@@ -132,22 +128,6 @@ public class ADQConfig {
         ANNOUNCE_GEN_FAIL = BUILDER
                 .comment("Whether to broadcast to the server when quest generation fails to locate villages.")
                 .define("announceGenFail", true);
-
-        BUILDER.pop();
-
-        BUILDER.push("rewards");
-
-        LIGHT_REWARDS = BUILDER
-                .comment("Loot table for Light quests. Format: namespace:item_id:count")
-                .defineList("lightRewards", List.of("minecraft:emerald:15", "create:cogwheel:4"), obj -> obj instanceof String);
-
-        MEDIUM_REWARDS = BUILDER
-                .comment("Loot table for Medium quests. Format: namespace:item_id:count")
-                .defineList("mediumRewards", List.of("minecraft:emerald:30", "create:mechanical_press:2", "create:gearbox:2"), obj -> obj instanceof String);
-
-        HEAVY_REWARDS = BUILDER
-                .comment("Loot table for Heavy quests. Format: namespace:item_id:count")
-                .defineList("heavyRewards", List.of("minecraft:emerald:50", "create:mechanical_bearing:2", "create:steam_engine:2", "minecraft:diamond:4"), obj -> obj instanceof String);
 
         BUILDER.pop();
 

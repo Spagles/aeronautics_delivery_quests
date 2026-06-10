@@ -3,7 +3,7 @@
 
 **Aeronautics Delivery Quests (ADQ)** is a lightweight, high-performance NeoForge 1.21.1 mod that adds procedural hauling contracts to your server. Players can accept quests, travel to remote locations to secure physical cargo, and pilot their custom-built airships to transport these heavy rigid bodies to destination settlements for massive rewards.
 
-Best of all: **ADQ is 100% server-side optional.** Clients do not need to download or install the mod to join, view the custom Quest Board UI, or navigate using calibrated Quest Compasses!
+Best of all: **ADQ must be installed on both the client and server** (or just the client for singleplayer) to handle custom UI rendering, block assets, and packet synchronization.
 
 ---
 
@@ -20,7 +20,7 @@ Best of all: **ADQ is 100% server-side optional.** Clients do not need to downlo
 ## 🔍 For the Skeptics (FAQ)
 
 ### 💻 Does this require client-side installs?
-**No.** All menus, tooltips, custom Quest Compasses, and waypoints are driven by server-side vanilla components, custom lore styling, and standard packets. Clients running completely vanilla (or without the mod installed) can join, accept quests, navigate, and claim rewards with zero issues.
+**Yes.** Because the mod introduces the physical **Delivery Quests Table** block, custom clipboard menus, client-side screen UI rendering, and network synchronization packets, it must be installed on both the server and the client (or just the client for singleplayer).
 
 ### 📉 Will this cause tick lag or TPS spikes during generation?
 **No.** To prevent the classic "structure-lookup tick spikes," all village searches and pathfinding calculations are run on **fully asynchronous background threads** (`ForkJoinPool`). Only the final block placement is scheduled on the main thread, keeping your server running at a solid 20 TPS.

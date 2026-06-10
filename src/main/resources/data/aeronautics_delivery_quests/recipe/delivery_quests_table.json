@@ -2,19 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " P ",
-    " W ",
-    " M "
+    "D",
+    "C",
+    "S"
   ],
   "key": {
-    "P": {
+    "D": {
+      "item": "simulated:contraption_diagram"
+    },
+    "C": {
       "item": "minecraft:compass"
     },
-    "W": {
-      "tag": "minecraft:logs"
-    },
-    "M": {
-      "item": "minecraft:map"
+    "S": {
+      "tag": "minecraft:wooden_slabs"
     }
   },
   "result": {

@@ -68,35 +68,7 @@ public class QuestModel {
     public String getWeightClass() { return weightClass; }
     public double getActualWeight() { return actualWeight; }
     public List<String> getRewards() {
-        java.util.List<String> scaled = new java.util.ArrayList<>();
-        for (String reward : rewards) {
-            String[] parts = reward.split(":");
-            if (parts.length >= 2) {
-                try {
-                    String namespace = parts[0];
-                    String path = parts[1];
-                    int count = parts.length > 2 ? Integer.parseInt(parts[2]) : 1;
-                    
-                    // Scale old reward quantities by 10x dynamically
-                    if (count == 10 && path.equals("emerald")) count = 100;
-                    else if (count == 2 && path.equals("cogwheel")) count = 20;
-                    else if (count == 25 && path.equals("emerald")) count = 250;
-                    else if (count == 1 && path.equals("mechanical_press")) count = 10;
-                    else if (count == 1 && path.equals("gearbox")) count = 10;
-                    else if (count == 60 && path.equals("emerald")) count = 600;
-                    else if (count == 1 && path.equals("mechanical_bearing")) count = 10;
-                    else if (count == 1 && path.equals("steam_engine")) count = 10;
-                    else if (count == 3 && path.equals("diamond")) count = 30;
-                    
-                    scaled.add(namespace + ":" + path + ":" + count);
-                } catch (Exception e) {
-                    scaled.add(reward);
-                }
-            } else {
-                scaled.add(reward);
-            }
-        }
-        return scaled;
+        return rewards;
     }
     
     public UUID getAcceptedBy() { return acceptedBy; }

@@ -17,7 +17,8 @@ public class ModBlocks {
         "delivery_quests_table",
         () -> new DeliveryQuestsTableBlock(BlockBehaviour.Properties.of()
             .strength(3.0F, 6.0F)
-            .requiresCorrectToolForDrops())
+            .requiresCorrectToolForDrops()
+            .noOcclusion())
     );
 
     public static final DeferredHolder<Item, BlockItem> DELIVERY_QUESTS_TABLE_ITEM = ITEMS.register(

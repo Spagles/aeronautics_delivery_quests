@@ -85,18 +85,77 @@ public class QuestGenerator {
         public String weightClass;
         public double actualWeight;
         public List<String> rewards;
+        public String pickupPos = "";
+        public String dropoffPos = "";
 
         public CustomQuestTemplate() {}
 
         public CustomQuestTemplate(String name, String description, String schematicName, String weightClass, double actualWeight, List<String> rewards) {
+            this(name, description, schematicName, weightClass, actualWeight, rewards, "", "");
+        }
+
+        public CustomQuestTemplate(String name, String description, String schematicName, String weightClass, double actualWeight, List<String> rewards, String pickupPos, String dropoffPos) {
             this.name = name;
             this.description = description;
             this.schematicName = schematicName;
             this.weightClass = weightClass;
             this.actualWeight = actualWeight;
             this.rewards = rewards;
+            this.pickupPos = pickupPos != null ? pickupPos : "";
+            this.dropoffPos = dropoffPos != null ? dropoffPos : "";
         }
     }
+
+    public static final List<CustomQuestTemplate> DEFAULT_TEMPLATES = List.of(
+        new CustomQuestTemplate(
+            "Secret Industrial Core",
+            "A highly critical delivery containing sensitive mechanical components. Keep the shipment secure and intact!",
+            "medium_machinery_pallet",
+            "Medium",
+            3500.0,
+            List.of("minecraft:emerald:35", "create:mechanical_arm:1")
+        ),
+        new CustomQuestTemplate(
+            "High-Value Vault Transport",
+            "Transport a reinforced secure container containing corporate assets. Heavy and highly guarded!",
+            "heavy_secure_container",
+            "Heavy",
+            9000.0,
+            List.of("minecraft:emerald:50", "minecraft:gold_ingot:8")
+        ),
+        new CustomQuestTemplate(
+            "Emergency Food Supplies",
+            "Deliver urgent food rations to a starving village. Fast transport is requested.",
+            "light_food_crate",
+            "Light",
+            1200.0,
+            List.of("minecraft:emerald:15", "minecraft:bread:16")
+        ),
+        new CustomQuestTemplate(
+            "Standard Copper Shipment",
+            "A shipment of raw copper ores for industrial smelting.",
+            "medium_ore_crate",
+            "Medium",
+            4000.0,
+            List.of("minecraft:emerald:25", "create:copper_casing:4")
+        ),
+        new CustomQuestTemplate(
+            "Industrial Boiler Delivery",
+            "Transport a massive industrial boiler unit to the high-altitude power station.",
+            "heavy_industrial_boiler",
+            "Heavy",
+            11000.0,
+            List.of("minecraft:emerald:45", "create:fluid_tank:2")
+        ),
+        new CustomQuestTemplate(
+            "Standard Cargo Haul",
+            "A simple transport contract of standard copper components.",
+            "light_cargo_crate",
+            "Light",
+            1500.0,
+            List.of("minecraft:emerald:20", "create:cogwheel:4")
+        )
+    );
 
     /**
      * Loads custom quest templates from config/aeronautics_delivery_quests/custom_quests.json.
@@ -126,59 +185,8 @@ public class QuestGenerator {
             }
 
             if (needsGen) {
-                // Generate default custom quests as examples!
-                List<CustomQuestTemplate> defaults = new ArrayList<>();
-                defaults.add(new CustomQuestTemplate(
-                    "Secret Industrial Core",
-                    "A highly critical delivery containing sensitive mechanical components. Keep the shipment secure and intact!",
-                    "medium_machinery_pallet",
-                    "Medium",
-                    3500.0,
-                    List.of("minecraft:emerald:35", "create:mechanical_arm:1")
-                ));
-                defaults.add(new CustomQuestTemplate(
-                    "High-Value Vault Transport",
-                    "Transport a reinforced secure container containing corporate assets. Heavy and highly guarded!",
-                    "heavy_secure_container",
-                    "Heavy",
-                    9000.0,
-                    List.of("minecraft:emerald:50", "minecraft:gold_ingot:8")
-                ));
-                defaults.add(new CustomQuestTemplate(
-                    "Emergency Food Supplies",
-                    "Deliver urgent food rations to a starving village. Fast transport is requested.",
-                    "light_food_crate",
-                    "Light",
-                    1200.0,
-                    List.of("minecraft:emerald:15", "minecraft:bread:16")
-                ));
-                defaults.add(new CustomQuestTemplate(
-                    "Standard Copper Shipment",
-                    "A shipment of raw copper ores for industrial smelting.",
-                    "medium_ore_crate",
-                    "Medium",
-                    4000.0,
-                    List.of("minecraft:emerald:25", "create:copper_casing:4")
-                ));
-                defaults.add(new CustomQuestTemplate(
-                    "Industrial Boiler Delivery",
-                    "Transport a massive industrial boiler unit to the high-altitude power station.",
-                    "heavy_industrial_boiler",
-                    "Heavy",
-                    11000.0,
-                    List.of("minecraft:emerald:45", "create:fluid_tank:2")
-                ));
-                defaults.add(new CustomQuestTemplate(
-                    "Standard Cargo Haul",
-                    "A simple transport contract of standard copper components.",
-                    "light_cargo_crate",
-                    "Light",
-                    1500.0,
-                    List.of("minecraft:emerald:20", "create:cogwheel:4")
-                ));
-                
                 try (Writer writer = Files.newBufferedWriter(customQuestsPath)) {
-                    GSON.toJson(defaults, writer);
+                    GSON.toJson(DEFAULT_TEMPLATES, writer);
                 }
                 LOGGER.info("[ADQ] Generated example custom_quests.json template.");
             }
@@ -317,6 +325,74 @@ public class QuestGenerator {
         level.getServer().execute(() -> QuestBoardMenuHandler.resyncToAllPlayers(level.getServer()));
  
         LOGGER.info("[ADQ] Triggering periodic quest generation asynchronously...");
+
+        boolean useCustom = ADQConfig.QUEST_GEN_MODE.get() == ADQConfig.QuestGenerationMode.CUSTOM;
+        List<CustomQuestTemplate> templatesSource = customTemplates.isEmpty() ? DEFAULT_TEMPLATES : customTemplates;
+        CustomQuestTemplate selectedTemplate = null;
+        ParsedCoords customStart = null;
+        ParsedCoords customEnd = null;
+
+        if (useCustom && !templatesSource.isEmpty()) {
+            net.minecraft.util.RandomSource rand = net.minecraft.util.RandomSource.create();
+            selectedTemplate = templatesSource.get(rand.nextInt(templatesSource.size()));
+            if (selectedTemplate != null) {
+                customStart = parseCoordinates(selectedTemplate.pickupPos);
+                customEnd = parseCoordinates(selectedTemplate.dropoffPos);
+            }
+        }
+
+        if (selectedTemplate != null && customStart != null && customEnd != null) {
+            final CustomQuestTemplate finalTemplate = selectedTemplate;
+            final ParsedCoords finalCustomStart = customStart;
+            final ParsedCoords finalCustomEnd = customEnd;
+
+            level.getServer().execute(() -> {
+                try {
+                    BlockPos startingPos = resolvePosition(level, finalCustomStart);
+                    BlockPos endingPos = resolvePosition(level, finalCustomEnd);
+
+                    if (!isWellWithinBorder(level, startingPos) || !isWellWithinBorder(level, endingPos)) {
+                        announceGenerationFailure(level);
+                        return;
+                    }
+
+                    UUID questId = UUID.randomUUID();
+                    String name = finalTemplate.name;
+                    String description = finalTemplate.description;
+                    String weightClass = finalTemplate.weightClass;
+                    double actualWeight = finalTemplate.actualWeight;
+                    List<String> rewards = new ArrayList<>(finalTemplate.rewards);
+                    String schematicName = finalTemplate.schematicName;
+
+                    QuestModel quest = new QuestModel(questId, name, description, startingPos, endingPos, weightClass, actualWeight, rewards);
+                    quest.setCreationTime(System.currentTimeMillis());
+                    quest.setSchematicName(schematicName);
+
+                    synchronized (availableQuests) {
+                        availableQuests.add(quest);
+                    }
+                    saveQuests();
+
+                    LOGGER.info("[ADQ] Generated custom coordinates quest: '{}' [{} class, {}kpg, Schematic: {}] from {} to {}", 
+                            name, weightClass, (int)actualWeight, quest.getSchematicName(), startingPos.toShortString(), endingPos.toShortString());
+                } catch (Exception e) {
+                    LOGGER.error("[ADQ] Error finalising custom coords quest on server thread", e);
+                } finally {
+                    isGenerating.set(false);
+                    if (triggerPlayerUuid != null) {
+                        ServerPlayer triggerPlayer = level.getServer().getPlayerList().getPlayer(triggerPlayerUuid);
+                        if (triggerPlayer != null) {
+                            ADQEventHandler.clearActionCooldown(triggerPlayer, "generate");
+                            ADQEventHandler.clearActionCooldown(triggerPlayer, "fill");
+                        }
+                    }
+                    QuestBoardMenuHandler.resyncToAllPlayers(level.getServer());
+                }
+            });
+            return;
+        }
+
+        final CustomQuestTemplate finalSelectedTemplate = selectedTemplate;
  
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             boolean scheduledFinalization = false;
@@ -522,11 +598,22 @@ public class QuestGenerator {
                         List<String> rewards = new ArrayList<>();
                         String schematicName;
 
-                        boolean useCustom = ADQConfig.QUEST_GEN_MODE.get() == ADQConfig.QuestGenerationMode.CUSTOM;
 
-                        // Case A: CUSTOM Mode with loaded templates. Spawns quests exactly as authored in custom_quests.json.
-                        if (useCustom && !customTemplates.isEmpty()) {
-                            CustomQuestTemplate template = customTemplates.get(rand.nextInt(customTemplates.size()));
+                        // Case A: CUSTOM Mode. Spawns quests exactly as authored.
+                        if (useCustom) {
+                            CustomQuestTemplate template = finalSelectedTemplate;
+                            if (template == null) {
+                                List<CustomQuestTemplate> templatesWithoutCoords = new ArrayList<>();
+                                for (CustomQuestTemplate t : templatesSource) {
+                                    if (parseCoordinates(t.pickupPos) == null || parseCoordinates(t.dropoffPos) == null) {
+                                        templatesWithoutCoords.add(t);
+                                    }
+                                }
+                                if (templatesWithoutCoords.isEmpty()) {
+                                    templatesWithoutCoords = templatesSource;
+                                }
+                                template = templatesWithoutCoords.get(rand.nextInt(templatesWithoutCoords.size()));
+                            }
                             name = template.name;
                             description = template.description;
                             weightClass = template.weightClass;
@@ -534,14 +621,14 @@ public class QuestGenerator {
                             rewards.addAll(template.rewards);
                             schematicName = template.schematicName;
                         }
-                        // Case B: PROCEDURAL Mode with loaded templates. Mixes and matches properties (Name, Desc, Schematic, Rewards)
+                        // Case B: PROCEDURAL Mode. Mixes and matches properties (Name, Desc, Schematic, Rewards)
                         // from different templates randomly to create a hybridized quest.
-                        else if (!useCustom && !customTemplates.isEmpty()) {
-                            CustomQuestTemplate nameTemplate = customTemplates.get(rand.nextInt(customTemplates.size()));
-                            CustomQuestTemplate descTemplate = customTemplates.get(rand.nextInt(customTemplates.size()));
-                            CustomQuestTemplate weightTemplate = customTemplates.get(rand.nextInt(customTemplates.size()));
-                            CustomQuestTemplate schematicTemplate = customTemplates.get(rand.nextInt(customTemplates.size()));
-                            CustomQuestTemplate rewardTemplate = customTemplates.get(rand.nextInt(customTemplates.size()));
+                        else {
+                            CustomQuestTemplate nameTemplate = templatesSource.get(rand.nextInt(templatesSource.size()));
+                            CustomQuestTemplate descTemplate = templatesSource.get(rand.nextInt(templatesSource.size()));
+                            CustomQuestTemplate weightTemplate = templatesSource.get(rand.nextInt(templatesSource.size()));
+                            CustomQuestTemplate schematicTemplate = templatesSource.get(rand.nextInt(templatesSource.size()));
+                            CustomQuestTemplate rewardTemplate = templatesSource.get(rand.nextInt(templatesSource.size()));
 
                             name = nameTemplate.name;
                             description = descTemplate.description;
@@ -549,26 +636,6 @@ public class QuestGenerator {
                             actualWeight = weightTemplate.actualWeight;
                             rewards.addAll(rewardTemplate.rewards);
                             schematicName = schematicTemplate.schematicName;
-                        }
-                        // Case C: Fallback. Executes if custom_quests.json was deleted, empty, or failed to load.
-                        // Generates completely procedural quests drawing from standard default tables and names.
-                        else {
-                            name = generateProceduralQuestName(rand);
-                            description = generateProceduralQuestDescription(name);
-                            
-                            String[] classes = {"Light", "Medium", "Heavy"};
-                            weightClass = classes[rand.nextInt(classes.length)];
-                            if (weightClass.equals("Light")) {
-                                actualWeight = 500 + rand.nextInt(1000);
-                                rewards.addAll(ADQConfig.LIGHT_REWARDS.get());
-                            } else if (weightClass.equals("Medium")) {
-                                actualWeight = 2000 + rand.nextInt(3000);
-                                rewards.addAll(ADQConfig.MEDIUM_REWARDS.get());
-                            } else {
-                                actualWeight = 8000 + rand.nextInt(7000);
-                                rewards.addAll(ADQConfig.HEAVY_REWARDS.get());
-                            }
-                            schematicName = ADQSchematicManager.getRandomSchematicName(rand);
                         }
 
                         QuestModel quest = new QuestModel(questId, name, description, startingPos, endingPos, weightClass, actualWeight, rewards);
@@ -620,18 +687,59 @@ public class QuestGenerator {
         });
     }
 
-    private static String generateProceduralQuestName(net.minecraft.util.RandomSource rand) {
-        String[] prefixes = {"Urgent", "Valuable", "Heavy", "Fragile", "Special", "Express", "Secured", "Standard"};
-        String[] cargoes = {"Wheat Crate", "Iron Girders", "Gearbox Core", "Mechanical Parts", "Obsidian Anchor", "Copper Piping", "Steam Valve", "Baking Supplies"};
-        String[] suffixes = {"Transport", "Delivery", "Shipment", "Supply Run", "Haul"};
 
-        return prefixes[rand.nextInt(prefixes.length)] + " " +
-                cargoes[rand.nextInt(cargoes.length)] + " " +
-                suffixes[rand.nextInt(suffixes.length)];
+
+    public static class ParsedCoords {
+        public final int x;
+        public final int y;
+        public final int z;
+        public final boolean hasY;
+
+        public ParsedCoords(int x, int y, int z, boolean hasY) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.hasY = hasY;
+        }
     }
 
-    private static String generateProceduralQuestDescription(String questName) {
-        return "Contract details: Safeguard and carry the designated " + questName.toLowerCase() + " to the neighboring settlement. Physics-certified airship is highly recommended.";
+    private static ParsedCoords parseCoordinates(String coordStr) {
+        if (coordStr == null || coordStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            String[] parts = coordStr.split(",");
+            if (parts.length == 2) {
+                int x = Integer.parseInt(parts[0].trim());
+                int z = Integer.parseInt(parts[1].trim());
+                return new ParsedCoords(x, 0, z, false);
+            } else if (parts.length == 3) {
+                int x = Integer.parseInt(parts[0].trim());
+                int y = Integer.parseInt(parts[1].trim());
+                int z = Integer.parseInt(parts[2].trim());
+                return new ParsedCoords(x, y, z, true);
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.error("[ADQ] Failed to parse coordinates: " + coordStr, e);
+        }
+        return null;
+    }
+
+    private static BlockPos resolvePosition(ServerLevel level, ParsedCoords coords) {
+        int x = coords.x;
+        int z = coords.z;
+        int y;
+        if (coords.hasY && coords.y != 0) {
+            y = coords.y;
+        } else {
+            BlockPos tempPos = new BlockPos(x, 64, z);
+            level.getChunkAt(tempPos);
+            y = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            if (y < level.getMinBuildHeight() + 10) {
+                y = level.getSeaLevel();
+            }
+        }
+        return new BlockPos(x, y, z);
     }
 
     public static boolean isWellWithinBorder(ServerLevel level, BlockPos pos) {

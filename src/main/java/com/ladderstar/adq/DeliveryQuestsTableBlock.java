@@ -6,22 +6,22 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.DirectionalBlock;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class DeliveryQuestsTableBlock extends DirectionalBlock {
+public class DeliveryQuestsTableBlock extends HorizontalDirectionalBlock {
 
     public static final com.mojang.serialization.MapCodec<DeliveryQuestsTableBlock> CODEC = simpleCodec(DeliveryQuestsTableBlock::new);
 
     public DeliveryQuestsTableBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    protected com.mojang.serialization.MapCodec<? extends DirectionalBlock> codec() {
+    protected com.mojang.serialization.MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return CODEC;
     }
 
@@ -32,8 +32,7 @@ public class DeliveryQuestsTableBlock extends DirectionalBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // Look towards player when placed
-        return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override

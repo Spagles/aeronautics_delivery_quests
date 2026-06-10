@@ -55,28 +55,17 @@ public class FlightManualScreen extends AbstractSimiScreen {
         int textY = topPos + 44;
         int wrapWidth = 160;
 
-        // 1. Cargo Prep
-        graphics.drawString(this.font, "§l1. Airship Cargo Spawning", leftPos + 42, textY, titleColor, false);
-        textY += 10;
-        textY = drawWrappedText(graphics, "Go to the pickup village marked on your compass. Cargo spawns in a safe flat area when close.", leftPos + 42, textY, wrapWidth, inkColor);
-        textY += 4;
+        graphics.drawString(this.font, "§lDelivery Operations", leftPos + 42, textY, titleColor, false);
+        textY += 12;
 
-        // 2. Attachments
-        graphics.drawString(this.font, "§l2. Secure & Tether", leftPos + 42, textY, titleColor, false);
-        textY += 10;
-        textY = drawWrappedText(graphics, "Tether the cargo carriage to your airship using ropes, chains, gates, or docks.", leftPos + 42, textY, wrapWidth, inkColor);
-        textY += 4;
+        String description = "Accept a contract from the ledger to begin. Your compass will guide you to the pickup location, where the cargo carriage will spawn in a flat area.\n\n"
+                + "Secure the cargo to your airship using ropes, chains, or docking couplers. Transport it safely to the destination coordinates.\n\n"
+                + "Keep cargo intact! Block damage reduces your final payout.";
 
-        // 3. Payout calculations
-        graphics.drawString(this.font, "§l3. Protect Shipment", leftPos + 42, textY, titleColor, false);
-        textY += 10;
-        textY = drawWrappedText(graphics, "Missing blocks proportionally reduce your reward. Safeguard your cargo from crashes!", leftPos + 42, textY, wrapWidth, inkColor);
-        textY += 4;
-
-        // 4. Timer
-        graphics.drawString(this.font, "§l4. Delivery Route & Timer", leftPos + 42, textY, titleColor, false);
-        textY += 10;
-        drawWrappedText(graphics, "Contracts cycle every 60 minutes. Once accepted, you have 60 minutes to deliver.", leftPos + 42, textY, wrapWidth, inkColor);
+        for (String paragraph : description.split("\n\n")) {
+            textY = drawWrappedText(graphics, paragraph, leftPos + 42, textY, wrapWidth, inkColor);
+            textY += 6;
+        }
     }
 
     private int drawWrappedText(GuiGraphics graphics, String text, int x, int y, int maxWidth, int color) {

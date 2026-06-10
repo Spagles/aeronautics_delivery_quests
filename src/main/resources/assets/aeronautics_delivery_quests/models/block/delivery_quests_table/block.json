@@ -1,60 +1,174 @@
 {
 	"credit": "Made with Blockbench",
-	"texture_size": [32, 32],
+	"texture_size": [16, 16],
 	"textures": {
-		"1": "create:block/brass_casing",
-		"4": "aeronautics_delivery_quests:block/delivery_quests_table_block",
-		"particle": "create:block/brass_casing"
+		"wood": "minecraft:block/dark_oak_planks",
+		"wood_post": "minecraft:block/stripped_dark_oak_log",
+		"gold": "minecraft:block/gold_block",
+		"diagram": "aeronautics_delivery_quests:block/diagram",
+		"particle": "minecraft:block/dark_oak_planks"
 	},
 	"elements": [
 		{
-			"from": [0, 0, 0],
-			"to": [16, 2, 16],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, -16]},
+			"name": "base",
+			"from": [2, 0, 2],
+			"to": [14, 2, 14],
 			"faces": {
-				"north": {"uv": [8, 7, 16, 8], "texture": "#4", "cullface": "north"},
-				"east": {"uv": [8, 7, 16, 8], "texture": "#4", "cullface": "east"},
-				"south": {"uv": [8, 7, 16, 8], "texture": "#4", "cullface": "south"},
-				"west": {"uv": [8, 7, 16, 8], "texture": "#4", "cullface": "west"},
-				"up": {"uv": [16, 8, 8, 16], "texture": "#4"},
-				"down": {"uv": [8, 8, 16, 16], "texture": "#4", "cullface": "down"}
+				"north": {"texture": "#wood"},
+				"east": {"texture": "#wood"},
+				"south": {"texture": "#wood"},
+				"west": {"texture": "#wood"},
+				"up": {"texture": "#wood"},
+				"down": {"texture": "#wood"}
 			}
 		},
 		{
-			"from": [2, 2, 2],
-			"to": [14, 10, 14],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, -16]},
+			"name": "base_gold_plate",
+			"from": [1.95, 1.95, 1.95],
+			"to": [14.05, 2.05, 14.05],
 			"faces": {
-				"north": {"uv": [9, 3, 15, 7], "texture": "#4"},
-				"east": {"uv": [9, 3, 15, 7], "texture": "#4"},
-				"south": {"uv": [9, 3, 15, 7], "texture": "#4"},
-				"west": {"uv": [9, 3, 15, 7], "texture": "#4"},
-				"down": {"uv": [9, 9, 15, 15], "texture": "#4"}
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
 			}
 		},
 		{
-			"from": [0, 9, 0],
-			"to": [16, 13, 16],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, -1, -16]},
+			"name": "pillar",
+			"from": [5, 2, 5],
+			"to": [11, 10, 11],
 			"faces": {
-				"north": {"uv": [8, 1, 16, 3], "texture": "#4", "cullface": "north"},
-				"east": {"uv": [8, 1, 16, 3], "texture": "#4", "cullface": "east"},
-				"south": {"uv": [8, 1, 16, 3], "texture": "#4", "cullface": "south"},
-				"west": {"uv": [8, 1, 16, 3], "texture": "#4", "cullface": "west"},
-				"up": {"uv": [0, 0, 8, 8], "texture": "#4"},
-				"down": {"uv": [0, 0, 16, 16], "texture": "#1"}
+				"north": {"texture": "#wood_post"},
+				"east": {"texture": "#wood_post"},
+				"south": {"texture": "#wood_post"},
+				"west": {"texture": "#wood_post"},
+				"up": {"texture": "#wood_post"},
+				"down": {"texture": "#wood_post"}
 			}
 		},
 		{
-			"from": [4, 13, 4],
-			"to": [12, 15, 12],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, -1, -16]},
+			"name": "lower_gold_band",
+			"from": [4.95, 3.5, 4.95],
+			"to": [11.05, 4.5, 11.05],
 			"faces": {
-				"north": {"uv": [10, 0, 14, 1], "texture": "#4"},
-				"east": {"uv": [14, 0, 10, 1], "texture": "#4"},
-				"south": {"uv": [10, 0, 14, 1], "texture": "#4"},
-				"west": {"uv": [14, 0, 10, 1], "texture": "#4"},
-				"up": {"uv": [4, 8, 8, 12], "texture": "#4"}
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
+			}
+		},
+		{
+			"name": "upper_gold_band",
+			"from": [4.95, 7.5, 4.95],
+			"to": [11.05, 8.5, 11.05],
+			"faces": {
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
+			}
+		},
+		{
+			"name": "pillar_cap",
+			"from": [4, 10, 4],
+			"to": [12, 11, 12],
+			"faces": {
+				"north": {"texture": "#wood"},
+				"east": {"texture": "#wood"},
+				"south": {"texture": "#wood"},
+				"west": {"texture": "#wood"},
+				"up": {"texture": "#wood"},
+				"down": {"texture": "#wood"}
+			}
+		},
+		{
+			"name": "tabletop",
+			"from": [0, 11, 1],
+			"to": [16, 12.5, 15],
+			"rotation": {"origin": [8, 11, 8], "axis": "x", "angle": -22.5},
+			"faces": {
+				"north": {"texture": "#wood"},
+				"east": {"texture": "#wood"},
+				"south": {"texture": "#wood"},
+				"west": {"texture": "#wood"},
+				"up": {"texture": "#wood"},
+				"down": {"texture": "#wood"}
+			}
+		},
+		{
+			"name": "left_gold_trim",
+			"from": [0, 12.5, 1],
+			"to": [1, 13, 15],
+			"rotation": {"origin": [8, 11, 8], "axis": "x", "angle": -22.5},
+			"faces": {
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
+			}
+		},
+		{
+			"name": "right_gold_trim",
+			"from": [15, 12.5, 1],
+			"to": [16, 13, 15],
+			"rotation": {"origin": [8, 11, 8], "axis": "x", "angle": -22.5},
+			"faces": {
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
+			}
+		},
+		{
+			"name": "front_gold_lip",
+			"from": [0, 12.5, 0.5],
+			"to": [16, 13.5, 1.5],
+			"rotation": {"origin": [8, 11, 8], "axis": "x", "angle": -22.5},
+			"faces": {
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
+			}
+		},
+		{
+			"name": "back_gold_lip",
+			"from": [0, 12.5, 14.5],
+			"to": [16, 13.5, 15.5],
+			"rotation": {"origin": [8, 11, 8], "axis": "x", "angle": -22.5},
+			"faces": {
+				"north": {"texture": "#gold"},
+				"east": {"texture": "#gold"},
+				"south": {"texture": "#gold"},
+				"west": {"texture": "#gold"},
+				"up": {"texture": "#gold"},
+				"down": {"texture": "#gold"}
+			}
+		},
+		{
+			"name": "diagram",
+			"from": [2, 12.51, 2.5],
+			"to": [14, 12.56, 13.5],
+			"rotation": {"origin": [8, 11, 8], "axis": "x", "angle": -22.5},
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#diagram"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#diagram"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#diagram"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#diagram"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#diagram"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#diagram"}
 			}
 		}
 	],
@@ -92,13 +206,5 @@
 		"fixed": {
 			"scale": [0.5, 0.5, 0.5]
 		}
-	},
-	"groups": [
-		{
-			"name": "group",
-			"origin": [0, 0, 0],
-			"color": 0,
-			"children": [0, 1, 2, 3]
-		}
-	]
+	}
 }

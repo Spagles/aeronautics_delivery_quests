@@ -344,7 +344,7 @@ public class QuestBoardScreen extends AbstractSimiScreen {
             if (cooldownRemainingSeconds > 0) {
                 long mins = cooldownRemainingSeconds / 60;
                 long secs = cooldownRemainingSeconds % 60;
-                drawCenteredNoShadow(graphics, "Cooldown: " + mins + "m " + secs + "s", leftPos + 122, topPos + 40, titleColor);
+                drawCenteredNoShadow(graphics, "Next Quest In: " + mins + "m " + secs + "s", leftPos + 122, topPos + 40, titleColor);
             } else if (nextQuestTimerSeconds > 0) {
                 long mins = nextQuestTimerSeconds / 60;
                 long secs = nextQuestTimerSeconds % 60;
@@ -369,9 +369,11 @@ public class QuestBoardScreen extends AbstractSimiScreen {
                     // Quest Title (wrapped to prevent spill)
                     textY = drawWrappedText(graphics, "§1" + quest.getName(), textX, textY, wrapWidth, inkColor);
 
-                    // Combined mass and route distance info (wrapped to prevent overlap)
-                    String statsStr = "§9Mass: §0" + (int) quest.getActualWeight() + " kpg §9| Route: §0" + (int) quest.getDistance() + " blocks";
-                    textY = drawWrappedText(graphics, statsStr, textX, textY, wrapWidth, inkColor);
+                    // Mass info on its own line
+                    textY = drawWrappedText(graphics, "§9Mass: §0" + (int) quest.getActualWeight() + " kpg", textX, textY, wrapWidth, inkColor);
+
+                    // Route info on its own line
+                    textY = drawWrappedText(graphics, "§9Route: §0" + (int) quest.getDistance() + " blocks", textX, textY, wrapWidth, inkColor);
 
                     // Payout details (all rewards)
                     if (!quest.getRewards().isEmpty()) {
