@@ -351,6 +351,11 @@ public class QuestGenerator {
                     BlockPos startingPos = resolvePosition(level, finalCustomStart);
                     BlockPos endingPos = resolvePosition(level, finalCustomEnd);
 
+                    if (startingPos == null || endingPos == null) {
+                        announceGenerationFailure(level);
+                        return;
+                    }
+
                     if (!isWellWithinBorder(level, startingPos) || !isWellWithinBorder(level, endingPos)) {
                         announceGenerationFailure(level);
                         return;
@@ -429,8 +434,16 @@ public class QuestGenerator {
                 BlockPos searchCenter = null;
                 double R = ADQConfig.MIN_PLAYER_RADIUS.get();
 
+                // If a specific player triggered this generation (command or board button),
+                // center the search on them so their pickup spawns nearby instead of being
+                // scattered across the whole player spread.
+                ServerPlayer requestingPlayer = triggerPlayerUuid != null
+                        ? level.getServer().getPlayerList().getPlayer(triggerPlayerUuid) : null;
+
                 List<ServerPlayer> players = level.players();
-                if (!players.isEmpty()) {
+                if (requestingPlayer != null && requestingPlayer.serverLevel() == level) {
+                    searchCenter = requestingPlayer.blockPosition();
+                } else if (!players.isEmpty()) {
                     // Pick a random player as center base
                     ServerPlayer randomPlayer = players.get(rand.nextInt(players.size()));
                     searchCenter = randomPlayer.blockPosition();
@@ -568,6 +581,12 @@ public class QuestGenerator {
                     try {
                         level.getChunkAt(finalStartPosRaw);
                         int startY = level.getHeight(Heightmap.Types.WORLD_SURFACE, finalStartPosRaw.getX(), finalStartPosRaw.getZ());
+                        if (startY <= level.getMinBuildHeight()) {
+                            // Empty column (open void on floating-island world types) — abort
+                            // instead of spawning cargo over nothing.
+                            announceGenerationFailure(level);
+                            return;
+                        }
                         if (startY < level.getMinBuildHeight() + 10) {
                             startY = level.getSeaLevel();
                         }
@@ -580,6 +599,10 @@ public class QuestGenerator {
 
                         level.getChunkAt(finalEndPosRaw);
                         int endY = level.getHeight(Heightmap.Types.WORLD_SURFACE, finalEndPosRaw.getX(), finalEndPosRaw.getZ());
+                        if (endY <= level.getMinBuildHeight()) {
+                            announceGenerationFailure(level);
+                            return;
+                        }
                         if (endY < level.getMinBuildHeight() + 10) {
                             endY = level.getSeaLevel();
                         }
@@ -735,6 +758,10 @@ public class QuestGenerator {
             BlockPos tempPos = new BlockPos(x, 64, z);
             level.getChunkAt(tempPos);
             y = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            if (y <= level.getMinBuildHeight()) {
+                // Empty column (open void) — no valid surface to resolve to.
+                return null;
+            }
             if (y < level.getMinBuildHeight() + 10) {
                 y = level.getSeaLevel();
             }

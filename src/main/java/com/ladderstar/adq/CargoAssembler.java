@@ -216,6 +216,12 @@ public class CargoAssembler {
                 for (int z = center.getZ() - L / 2; z < center.getZ() - L / 2 + L; z++) {
                     int hy = getHighestSolidY(level, x, z, center.getY());
                     if (hy > maxY) maxY = hy;
+                    // Over water the highest SOLID block is the seabed; clamp to the fluid
+                    // surface so cargo never spawns submerged (it lands on the water instead).
+                    int surfaceY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+                    if (surfaceY > maxY && !level.getFluidState(new BlockPos(x, surfaceY, z)).isEmpty()) {
+                        maxY = surfaceY;
+                    }
                 }
             }
             bestPos = new BlockPos(center.getX(), maxY + 4, center.getZ());

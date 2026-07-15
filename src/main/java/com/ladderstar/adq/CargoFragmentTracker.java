@@ -113,6 +113,54 @@ public class CargoFragmentTracker {
         }
     }
 
+    /**
+     * Returns the active quest whose cargo plot (main body or any tracked split fragment)
+     * contains the given block position, or null.
+     *
+     * Sable stores sublevel blocks in "plots" embedded at remote holding-chunk coordinates
+     * of the host level — NOT in separate dimensions — so block protection must match
+     * positions against plot bounding boxes. (The pre-1.1.0 dimension-name check never
+     * matched anything, which is why cargo invulnerability appeared to do nothing.)
+     */
+    public static QuestModel getQuestForPlotPos(ServerLevel level, net.minecraft.core.BlockPos pos) {
+        try {
+            dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer container =
+                dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer.getContainer(level);
+            if (container == null) {
+                return null;
+            }
+            for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
+                if (quest.getAcceptedBy() == null || quest.isCompleted()) {
+                    continue;
+                }
+                if (isPosInSubLevelPlot(container, quest.getCargoEntityId(), pos)) {
+                    return quest;
+                }
+                for (UUID fragmentId : quest.getCargoFragmentIds()) {
+                    if (isPosInSubLevelPlot(container, fragmentId, pos)) {
+                        return quest;
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            LOGGER.error("[TNM Quests] Error matching block position against cargo plots", t);
+        }
+        return null;
+    }
+
+    private static boolean isPosInSubLevelPlot(dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer container,
+                                               UUID subLevelId, net.minecraft.core.BlockPos pos) {
+        if (subLevelId == null) {
+            return false;
+        }
+        dev.ryanhcode.sable.sublevel.SubLevel sub = container.getSubLevel(subLevelId);
+        if (sub instanceof dev.ryanhcode.sable.sublevel.ServerSubLevel serverSub) {
+            dev.ryanhcode.sable.sublevel.plot.ServerLevelPlot plot = serverSub.getPlot();
+            return plot != null && plot.getBoundingBox().contains(pos.getX(), pos.getY(), pos.getZ());
+        }
+        return false;
+    }
+
     private static void registerFragment(dev.ryanhcode.sable.sublevel.ServerSubLevel fragment, UUID splitFrom) {
         for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
             if (quest.getAcceptedBy() != null && !quest.isCompleted() && quest.isCargoSubLevel(splitFrom)) {

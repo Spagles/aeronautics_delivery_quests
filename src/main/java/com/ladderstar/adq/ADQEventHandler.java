@@ -114,23 +114,17 @@ public class ADQEventHandler {
     //     When breakable, the vanilla break is cancelled and the block is removed
     //     manually with drops disabled.
 
-    /** Returns the active quest whose cargo sublevel (or a tracked split fragment) owns this dimension, or null. */
-    private static QuestModel getQuestForCargoDimension(ServerLevel level) {
-        String dimPath = level.dimension().location().getPath();
-        for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
-            if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
-                java.util.UUID cargoId = quest.getCargoEntityId();
-                if (cargoId != null && dimPath.contains(cargoId.toString())) {
-                    return quest;
-                }
-                for (java.util.UUID fragmentId : quest.getCargoFragmentIds()) {
-                    if (dimPath.contains(fragmentId.toString())) {
-                        return quest;
-                    }
-                }
-            }
+    /**
+     * Returns the active quest whose cargo sublevel plot (main body or a tracked split
+     * fragment) contains this block position, or null. Sable embeds sublevel blocks in
+     * plots at remote holding-chunk coordinates of the host level, so this matches
+     * against plot bounding boxes via CargoFragmentTracker (Sable-only code path).
+     */
+    private static QuestModel getQuestForCargoPlot(ServerLevel level, BlockPos pos) {
+        if (!net.neoforged.fml.ModList.get().isLoaded("sable")) {
+            return null;
         }
-        return null;
+        return CargoFragmentTracker.getQuestForPlotPos(level, pos);
     }
 
     /**
@@ -169,9 +163,9 @@ public class ADQEventHandler {
         return null;
     }
 
-    /** Returns the active quest owning this cargo block position (sublevel dimension or Overworld spawn region), or null. */
+    /** Returns the active quest owning this cargo block position (sublevel plot or Overworld spawn region), or null. */
     private static QuestModel getQuestForCargoBlock(ServerLevel level, BlockPos pos) {
-        QuestModel quest = getQuestForCargoDimension(level);
+        QuestModel quest = getQuestForCargoPlot(level, pos);
         if (quest != null) {
             return quest;
         }
@@ -207,7 +201,7 @@ public class ADQEventHandler {
         if (!ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) return;
 
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            if (getQuestForCargoDimension(serverLevel) != null) {
+            if (getQuestForCargoPlot(serverLevel, event.getPos()) != null) {
                 event.setCanceled(true);
             }
         }
@@ -220,27 +214,13 @@ public class ADQEventHandler {
         }
         boolean invulnerable = ADQConfig.ENABLE_CARGO_INVULNERABILITY.get();
 
-        // Case 1: the whole dimension belongs to a cargo sublevel (or split fragment).
-        if (getQuestForCargoDimension(serverLevel) != null) {
-            if (invulnerable) {
-                event.getAffectedBlocks().clear();
-            } else {
-                // Breakable: let the explosion destroy cargo blocks, but with no drops.
-                List<BlockPos> cargoBlocks = new java.util.ArrayList<>(event.getAffectedBlocks());
-                event.getAffectedBlocks().clear();
-                for (BlockPos p : cargoBlocks) {
-                    serverLevel.destroyBlock(p, false);
-                }
-            }
-            return;
-        }
-
-        // Case 2: Overworld — filter only the affected blocks inside a cargo spawn region.
+        // Filter every affected block that belongs to cargo (sublevel plot or Overworld
+        // spawn region). Invulnerable: fully protected. Breakable: destroyed with no drops.
         java.util.List<BlockPos> noDropDestroy = new java.util.ArrayList<>();
         java.util.Iterator<BlockPos> it = event.getAffectedBlocks().iterator();
         while (it.hasNext()) {
             BlockPos p = it.next();
-            if (getQuestForOverworldCargoPos(serverLevel, p) != null) {
+            if (getQuestForCargoBlock(serverLevel, p) != null) {
                 it.remove();
                 if (!invulnerable) {
                     noDropDestroy.add(p);

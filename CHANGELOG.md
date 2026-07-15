@@ -5,9 +5,14 @@
 - **Full Save Compatibility**: The mod ID remains `aeronautics_delivery_quests`, so existing worlds, block registries, `aeronautics_delivery_quests.toml` config, `custom_quests.json`, and saved quest/cooldown data all carry over untouched. The `/adq` command is unchanged.
 
 #### Cargo Protection Overhaul
-- **True Invulnerability**: With `enableCargoInvulnerability` on, cargo is now protected from *all* destruction sources in both the Sable sublevel dimension and the Overworld spawn region — player breaks, explosions (previously unprotected in the Overworld), and mob block-destruction. The Overworld protection region is now correctly sized from the quest's schematic instead of a hardcoded 3×3×3 box.
+- **Invulnerability Actually Works Now**: The old protection matched cargo by *dimension name*, but Sable embeds sublevel blocks in plots at remote holding-chunk coordinates of the host level — so the check never matched anything and `enableCargoInvulnerability` silently did nothing. Protection now matches block positions against the cargo sublevel's **plot bounding box** (main body and split fragments), covering player breaks, block placement, explosions, and mob block-destruction. The Overworld spawn-region protection is also now correctly sized from the quest's schematic instead of a hardcoded 3×3×3 box.
 - **No Cargo Item Drops — Ever**: Regardless of the invulnerability setting, destroyed cargo blocks never drop their items. In breakable mode the block is removed (and still reduces the delivery payout), but yields no loot.
 - **Split Fragment Tracking**: When a cargo contraption is fractured into multiple Sable physics bodies, the detached pieces are now detected (via Sable's split-from marker) and recorded on the quest. Fragments inherit full cargo block protection, and are removed together with the main cargo body when the quest completes, fails, or is cancelled — no more permanent debris. The quest continues to target the main body, and blocks lost to split-off pieces count as missing mass for reward scaling.
+
+#### Quest Generation Fixes
+- **Requester-Centered Generation**: Quests generated via `/adq generate` or the board's Generate/Fill buttons now search for pickup locations around the player who triggered them, instead of a random online player (which could place pickups tens of thousands of blocks away on servers with spread-out players). Automatic periodic generation still covers the whole player spread.
+- **No More Underwater Cargo**: The safe-spawn fallback previously measured height from the highest *solid* block — the seabed — so cargo over oceans could spawn dozens of blocks underwater. The fallback now clamps to the fluid surface, so cargo lands on top of the water instead.
+- **No More Void Drops**: On floating-island/void world types, quest generation and custom-coordinate resolution now detect empty columns (no surface at all) and abort with the standard generation-failure announcement, instead of spawning cargo over open void.
 
 #### Build System & Metadata Updates
 - **NeoForge Build Target**: Bumped the build target from NeoForge 21.1.65 to 21.1.236 (minimum supported version remains 21.1.65).
