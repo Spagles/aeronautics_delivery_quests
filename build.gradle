@@ -4,7 +4,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.141'
-    id 'me.modmuss50.mod-publish-plugin' version '2.0.0-beta.1'
+    id 'me.modmuss50.mod-publish-plugin' version '2.1.1'
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -85,6 +85,10 @@ publishMods {
         
         minecraftVersions.add(minecraft_version)
         modLoaders.add("neoforge")
+
+        // Required on both sides (UI/screens on the client, quest logic on the server)
+        clientRequired = true
+        serverRequired = true
 
         requires("create")
         requires("create-aeronautics")

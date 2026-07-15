@@ -24,11 +24,11 @@ public class MarkerManager {
         // Setup and give initial compass pointing to startingPos (cargo pickup)
         ensureAndCalibrateCompass(player, quest);
 
-        player.sendSystemMessage(Component.literal("§6[ADQ] You have been given a Quest Delivery Compass calibrated to the cargo pickup location."));
+        player.sendSystemMessage(Component.literal("§6[TNM Quests] You have been given a Quest Delivery Compass calibrated to the cargo pickup location."));
 
         // 2. Minimap integration: Add map waypoints (FTB Chunks / JourneyMap)
         if (ModList.get().isLoaded("ftbchunks") || ModList.get().isLoaded("journeymap")) {
-            LOGGER.info("[ADQ] Adding server-side map waypoints for player {}", player.getName().getString());
+            LOGGER.info("[TNM Quests] Adding server-side map waypoints for player {}", player.getName().getString());
         }
     }
 
@@ -90,7 +90,7 @@ public class MarkerManager {
             if (!player.getInventory().add(compassStack)) {
                 player.drop(compassStack, false);
             }
-            player.sendSystemMessage(Component.literal("§6[ADQ] Re-issued Quest Delivery Compass pointing to your current objective."));
+            player.sendSystemMessage(Component.literal("§6[TNM Quests] Re-issued Quest Delivery Compass pointing to your current objective."));
         }
     }
 
@@ -99,7 +99,7 @@ public class MarkerManager {
     }
 
     public static void clearMarkers(ServerPlayer player, QuestModel quest) {
-        LOGGER.info("[ADQ] Clearing quest navigation trackers for player {}", player.getName().getString());
+        LOGGER.info("[TNM Quests] Clearing quest navigation trackers for player {}", player.getName().getString());
 
         // 1. Scan player inventory and remove the Quest Compass
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {

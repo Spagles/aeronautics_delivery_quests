@@ -24,6 +24,21 @@ import java.util.UUID;
 public class DeliveryTracker {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    // In-memory backoff so a failed Sable assembly (mod missing, schematic error) is
+    // retried at most every 30 seconds instead of every tracker tick.
+    private static final java.util.Map<UUID, Long> spawnAttemptBackoff = new java.util.HashMap<>();
+    private static final long SPAWN_RETRY_MS = 30_000L;
+
+    private static boolean canAttemptSpawn(QuestModel quest) {
+        long now = System.currentTimeMillis();
+        Long lastAttempt = spawnAttemptBackoff.get(quest.getQuestId());
+        if (lastAttempt != null && now - lastAttempt < SPAWN_RETRY_MS) {
+            return false;
+        }
+        spawnAttemptBackoff.put(quest.getQuestId(), now);
+        return true;
+    }
+
     public static void tick(ServerLevel level) {
         if (level.dimension() != net.minecraft.world.level.Level.OVERWORLD) {
             return;
@@ -37,7 +52,7 @@ public class DeliveryTracker {
             if (quest.getAcceptedBy() == null) {
                 long expirationMs = (long) ADQConfig.QUEST_EXPIRATION_TIME.get() * 60L * 1000L;
                 if (quest.getCreationTime() > 0 && System.currentTimeMillis() - quest.getCreationTime() >= expirationMs) {
-                    LOGGER.info("[ADQ] Unclaimed quest '{}' has expired from the board and is being cycled.", quest.getName());
+                    LOGGER.info("[TNM Quests] Unclaimed quest '{}' has expired from the board and is being cycled.", quest.getName());
                     iterator.remove();
                     QuestGenerator.saveQuests();
                     continue;
@@ -63,30 +78,44 @@ public class DeliveryTracker {
                         double distance = Math.sqrt(player.blockPosition().distSqr(startPos));
 
                         // Show HUD feed (Using Create's kpg weight branding)
-                        player.sendSystemMessage(Component.literal("§6[ADQ] Travel to Cargo pickup: §f" + (int)distance + " blocks"), true);
+                        player.sendSystemMessage(Component.literal("§6[TNM Quests] Travel to Cargo pickup: §f" + (int)distance + " blocks"), true);
 
-                        if (distance <= 15.0) {
+                        // Stage 0a: Pre-spawn the physical cargo while the pilot is still well
+                        // outside render distance, so it is never seen popping in.
+                        if (quest.getCargoEntityId() == null
+                                && distance <= ADQConfig.CARGO_SPAWN_DISTANCE.get()
+                                && canAttemptSpawn(quest)) {
                             boolean spawned = CargoAssembler.spawnAndAssembleCargo(player, quest);
                             if (spawned) {
+                                spawnAttemptBackoff.remove(quest.getQuestId());
+                                QuestGenerator.saveQuests();
+                                LOGGER.info("[TNM Quests] Pre-spawned cargo for quest '{}' at {} ({} blocks ahead of pilot {}).",
+                                        quest.getName(), quest.getStartingPos().toShortString(), (int) distance, player.getName().getString());
+                            }
+                        }
+
+                        // Stage 0b: Secure the cargo once the pilot actually arrives.
+                        if (distance <= 15.0) {
+                            if (quest.getCargoEntityId() != null) {
                                 quest.setCargoPickedUp(true);
                                 QuestGenerator.saveQuests();
 
-                                playerLevel.playSound(null, player.getX(), player.getY(), player.getZ(), 
+                                playerLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
                                         SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 1.0F, 1.0F);
 
-                                player.sendSystemMessage(Component.literal("§a§l[ADQ] Cargo Secured! §7The delivery location has been marked. Quest Compass updated."));
+                                player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Cargo Secured! §7The delivery location has been marked. Quest Compass updated."));
                                 player.sendSystemMessage(Component.literal("§7Transport the physical cargo contraption to the destination village at §f" + quest.getEndingPos().toShortString()));
 
                                 if (player.getServer() != null && ADQConfig.ANNOUNCE_SECURE.get()) {
                                     player.getServer().getPlayerList().broadcastSystemMessage(
-                                        Component.literal("§6§l[ADQ] §a" + player.getName().getString() + " §7has secured the cargo for contract: §e" + quest.getName() + "§7. Ready for transport!"),
+                                        Component.literal("§6§l[TNM Quests] §a" + player.getName().getString() + " §7has secured the cargo for contract: §e" + quest.getName() + "§7. Ready for transport!"),
                                         false
                                     );
                                 }
 
                                 MarkerManager.updateCompassToDelivery(player, quest);
                             } else {
-                                player.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Broken! §fFailed to compile Aeronautics physics contraption. Cancel contract via the Quest Board."));
+                                player.sendSystemMessage(Component.literal("§c§l[TNM Quests] Quest Broken! §fFailed to compile Aeronautics physics contraption. Cancel contract via the Quest Board."));
                             }
                         }
                     } else {
@@ -105,7 +134,7 @@ public class DeliveryTracker {
                                     }
                                 }
                             } catch (Throwable t) {
-                                LOGGER.error("[ADQ] Exception looking up Sable sublevel", t);
+                                LOGGER.error("[TNM Quests] Exception looking up Sable sublevel", t);
                             }
                         }
 
@@ -119,14 +148,14 @@ public class DeliveryTracker {
                             double dy = Math.abs(cargoPos.getY() - destPos.getY());
                             double distance = Math.sqrt(cargoPos.distSqr(destPos));
 
-                            player.sendSystemMessage(Component.literal("§a[ADQ] Cargo distance to delivery: §e" + (int)distance + " blocks (horizontal: " + (int)Math.max(dx, dz) + "/4)"), true);
+                            player.sendSystemMessage(Component.literal("§a[TNM Quests] Cargo distance to delivery: §e" + (int)distance + " blocks (horizontal: " + (int)Math.max(dx, dz) + "/4)"), true);
 
                             if (dx <= 4.0 && dz <= 4.0 && dy <= 6.0) {
                                 int remainingBlocks = countRemainingSublevelBlocks(playerLevel, cargoSubLevel, quest);
                                 completeQuest(player, quest, iterator, remainingBlocks);
                             }
                         } else {
-                            player.sendSystemMessage(Component.literal("§c[ADQ] Cargo physics sublevel missing! Re-locate or cancel contract."), true);
+                            player.sendSystemMessage(Component.literal("§c[TNM Quests] Cargo physics sublevel missing! Re-locate or cancel contract."), true);
                         }
                     }
                 }
@@ -163,16 +192,16 @@ public class DeliveryTracker {
                 }
             }
 
-            LOGGER.info("[ADQ] Checked cargo sublevel blocks: {} / {} remaining.", nonAirCount, quest.getOriginalBlockCount());
+            LOGGER.info("[TNM Quests] Checked cargo sublevel blocks: {} / {} remaining.", nonAirCount, quest.getOriginalBlockCount());
             return nonAirCount;
         } catch (Throwable t) {
-            LOGGER.error("[ADQ] Error counting remaining cargo blocks in sublevel", t);
+            LOGGER.error("[TNM Quests] Error counting remaining cargo blocks in sublevel", t);
             return quest.getOriginalBlockCount();
         }
     }
 
     public static void forceCompleteQuest(ServerPlayer player, QuestModel quest) {
-        LOGGER.info("[ADQ] Force-completing quest: {} for player {}", quest.getName(), player.getName().getString());
+        LOGGER.info("[TNM Quests] Force-completing quest: {} for player {}", quest.getName(), player.getName().getString());
         completeQuest(player, quest, null, -1);
     }
 
@@ -180,7 +209,7 @@ public class DeliveryTracker {
         ServerLevel level = player.serverLevel();
         quest.setCompleted(true);
 
-        LOGGER.info("[ADQ] Quest '{}' completed by {}", quest.getName(), player.getName().getString());
+        LOGGER.info("[TNM Quests] Quest '{}' completed by {}", quest.getName(), player.getName().getString());
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(), 
                 SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0F, 1.0F);
@@ -197,14 +226,14 @@ public class DeliveryTracker {
 
             if (scale < 1.0) {
                 player.sendSystemMessage(Component.literal(
-                    "§c[ADQ] Cargo damaged! Some blocks are missing upon delivery. Rewards scaled down to §e" + (int)(scale * 100) + "%§c!"
+                    "§c[TNM Quests] Cargo damaged! Some blocks are missing upon delivery. Rewards scaled down to §e" + (int)(scale * 100) + "%§c!"
                 ));
             }
         }
 
         if (player.getServer() != null && ADQConfig.ANNOUNCE_COMPLETE.get()) {
             player.getServer().getPlayerList().broadcastSystemMessage(
-                Component.literal("§6§l[ADQ] §a" + player.getName().getString() + " §7has successfully completed the contract: §e" + quest.getName() + " §7and received their rewards!"),
+                Component.literal("§6§l[TNM Quests] §a" + player.getName().getString() + " §7has successfully completed the contract: §e" + quest.getName() + " §7and received their rewards!"),
                 false
             );
         }
@@ -233,7 +262,7 @@ public class DeliveryTracker {
                         }
                     }
                 } catch (Exception e) {
-                    LOGGER.error("[ADQ] Failed to dispense reward: " + reward, e);
+                    LOGGER.error("[TNM Quests] Failed to dispense reward: " + reward, e);
                 }
             }
         }
@@ -254,19 +283,19 @@ public class DeliveryTracker {
     }
 
     private static void failQuest(ServerLevel level, QuestModel quest, ServerPlayer player) {
-        LOGGER.info("[ADQ] Quest '{}' failed due to time limit expiration.", quest.getName());
+        LOGGER.info("[TNM Quests] Quest '{}' failed due to time limit expiration.", quest.getName());
 
         CargoAssembler.removeCargo(level, quest);
 
         if (player != null) {
             MarkerManager.clearMarkers(player, quest);
-            player.sendSystemMessage(Component.literal("§c§l[ADQ] CONTRACT FAILED: §fThe delivery contract time limit has expired! Cargo recalled."));
+            player.sendSystemMessage(Component.literal("§c§l[TNM Quests] CONTRACT FAILED: §fThe delivery contract time limit has expired! Cargo recalled."));
         }
 
         if (level.getServer() != null && ADQConfig.ANNOUNCE_FAIL.get()) {
             String pName = player != null ? player.getName().getString() : "A pilot";
             level.getServer().getPlayerList().broadcastSystemMessage(
-                Component.literal("§6§l[ADQ] §c" + pName + " §7failed to complete the contract: §e" + quest.getName() + " §7in time."),
+                Component.literal("§6§l[TNM Quests] §c" + pName + " §7failed to complete the contract: §e" + quest.getName() + " §7in time."),
                 false
             );
         }

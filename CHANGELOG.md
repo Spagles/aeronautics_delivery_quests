@@ -1,3 +1,27 @@
+### TNM Aeronautics Quests - v1.1.0 Changelog
+
+#### ✈️ TNM Rebranding
+- **New Name**: *Aeronautics Delivery Quests (ADQ)* is now **TNM Aeronautics Quests**! The mod name, description, and in-game chat prefix (`[ADQ]` → `[TNM Quests]`) have all been updated.
+- **Your Worlds Are Safe**: This is purely a rename — the internal mod ID stays `aeronautics_delivery_quests`, so existing worlds, placed Delivery Quests Tables, configs (`aeronautics_delivery_quests.toml`, `custom_quests.json`), saved quests, and cooldowns all carry over untouched. The `/adq` command works exactly as before. Just drop in the new jar.
+
+#### 🔒 Cargo Protection Overhaul
+- **Cargo Invulnerability Fixed**: The `enableCargoInvulnerability` option previously had no effect — cargo could always be broken. It now genuinely protects cargo everywhere it exists: on the physics contraption *and* at the pickup site, against player mining, block placement, explosions, and mob griefing. Protection coverage also now matches the full size of the cargo instead of a small fixed area.
+- **No More Free Loot**: Cargo blocks **never drop items** when destroyed — with invulnerability on *or* off. You can no longer mine iron blocks (or anything else) out of a delivery crate. In breakable mode, destroyed blocks still reduce the delivery payout as damage; they just yield nothing.
+- **Split Cargo Fully Recalled**: If a cargo contraption gets fractured into multiple physics pieces, all detached pieces are now tracked as part of the quest. They get the same block protection, and every piece is recalled together when the contract is completed, cancelled, or failed — no more orphaned debris floating around your world. The compass and delivery check keep targeting the main body, and blocks lost to broken-off pieces count as missing mass toward the damage penalty.
+
+#### 📦 Smarter Cargo Spawning
+- **No More Pop-In**: Cargo now spawns while the approaching pilot is still far outside render distance (new `cargoSpawnDistance` config, default 250 blocks), so it's already sitting on the ground by the time you can see the pickup site. Securing the cargo, the compass switch, and server announcements still happen when you reach the pickup point, same as before.
+- **Nearby Contracts for the Requester**: Using `/adq generate` or the board's Generate/Fill buttons now searches for pickup locations around *you*, instead of around a random online player — no more contracts spawning tens of thousands of blocks away on servers with spread-out players. Automatic background generation still spreads quests across the whole community.
+- **No More Underwater Cargo**: Cargo destined for ocean areas previously could spawn on the seabed, dozens of blocks underwater. It now lands on top of the water surface instead.
+- **No More Void Drops**: On floating-island and void world types, quest generation now detects when there's no ground at all and cleanly retries elsewhere, instead of dropping cargo into the abyss.
+
+#### 🛠️ Under the Hood
+- Updated the build to the latest NeoForge for 1.21.1 (21.1.236); servers on NeoForge 21.1.65 or newer remain fully supported.
+- Modernized mod metadata to NeoForge's current dependency format and cleaned up deprecated API usage for a warning-free build.
+- Updated the release/publishing toolchain (mod-publish-plugin 2.1.1) and made the project build cleanly on any machine.
+
+---
+
 ### Aeronautics Delivery Quests (ADQ) - v1.0.3 Changelog
 
 #### GUI Polish & Interface Polish

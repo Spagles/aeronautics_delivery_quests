@@ -6,7 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-@EventBusSubscriber(modid = AeronauticsDeliveryQuests.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = AeronauticsDeliveryQuests.MODID)
 public class ModPackets {
 
     @SubscribeEvent

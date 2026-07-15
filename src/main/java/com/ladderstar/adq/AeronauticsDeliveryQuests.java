@@ -13,7 +13,7 @@ public class AeronauticsDeliveryQuests {
     public static final Logger LOGGER = LogManager.getLogger();
 
     public AeronauticsDeliveryQuests(IEventBus modEventBus, ModContainer modContainer) {
-        LOGGER.info("[ADQ] Loading Aeronautics Delivery Quests...");
+        LOGGER.info("[TNM Quests] Loading TNM Aeronautics Quests...");
 
         // Register our blocks and items
         ModBlocks.register(modEventBus);
@@ -26,7 +26,7 @@ public class AeronauticsDeliveryQuests {
 
         modEventBus.addListener(this::addCreative);
 
-        LOGGER.info("[ADQ] Loaded successfully!");
+        LOGGER.info("[TNM Quests] Loaded successfully!");
     }
 
     private void addCreative(net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent event) {
