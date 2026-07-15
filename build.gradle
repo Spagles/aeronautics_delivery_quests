@@ -86,6 +86,10 @@ publishMods {
         minecraftVersions.add(minecraft_version)
         modLoaders.add("neoforge")
 
+        // Required on both sides (UI/screens on the client, quest logic on the server)
+        clientRequired = true
+        serverRequired = true
+
         requires("create")
         requires("create-aeronautics")
     }
