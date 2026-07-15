@@ -87,7 +87,9 @@ public class ADQConfig {
                 .defineInRange("rewardReductionScale", 1.0, 0.0, 5.0);
 
         ENABLE_CARGO_INVULNERABILITY = BUILDER
-                .comment("If true, cargo blocks and subLevels are completely indestructible and immune to player breaks, placement, explosions, and mob griefing. Also bypasses reward scaling penalty.")
+                .comment("If true, cargo blocks and subLevels are completely indestructible and immune to player breaks, placement, explosions, and mob griefing. Also bypasses reward scaling penalty.\n" +
+                         "If false, cargo blocks can be destroyed (reducing the delivery payout proportionally to the missing mass).\n" +
+                         "In BOTH modes, destroyed cargo blocks never drop their items.")
                 .define("enableCargoInvulnerability", false);
 
         MIN_START_DISTANCE = BUILDER

@@ -63,6 +63,12 @@ public class ADQEventHandler {
             if (gameTime % 10 == 0) {
                 DeliveryTracker.renderParticles(level);
             }
+
+            // 4. Track Sable sublevels that split off active cargo bodies (every tick;
+            //    the split marker is only readable for a short window after the split)
+            if (net.neoforged.fml.ModList.get().isLoaded("sable")) {
+                CargoFragmentTracker.tick(level);
+            }
         }
     }
 
@@ -98,42 +104,101 @@ public class ADQEventHandler {
         }
     }
 
-    @SubscribeEvent
-    public static void onBlockBreak(net.neoforged.neoforge.event.level.BlockEvent.BreakEvent event) {
-        net.minecraft.world.level.LevelAccessor level = event.getLevel();
-        BlockPos pos = event.getPos();
+    // ===================== Cargo block protection & drop suppression =====================
+    //
+    // Two invariants, independent of each other:
+    //  1. If enableCargoInvulnerability is ON, cargo blocks cannot be destroyed by
+    //     players, mobs, or explosions (in the Sable sublevel dimension AND in the
+    //     Overworld spawn region before/if the physics assembly happens).
+    //  2. Cargo blocks NEVER drop their items, whether invulnerability is on or off.
+    //     When breakable, the vanilla break is cancelled and the block is removed
+    //     manually with drops disabled.
 
-        if (level instanceof ServerLevel serverLevel) {
-            String dimPath = serverLevel.dimension().location().getPath();
-            for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
-                if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
-                    // 1. Check Sable SubLevel dimension via path (only cancel if invulnerability configuration is active!)
-                    java.util.UUID cargoId = quest.getCargoEntityId();
-                    if (cargoId != null && dimPath.contains(cargoId.toString())) {
-                        if (ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) {
-                            event.setCanceled(true);
-                            if (event.getPlayer() instanceof ServerPlayer sp) {
-                                sp.sendSystemMessage(Component.literal("§c[TNM Quests] Cargo blocks are protected and cannot be broken."));
-                            }
-                            return;
-                        }
-                    }
-
-                    // 2. Check Overworld spawned blocks (Stage 0 cargo blocks before securing)
-                    if (serverLevel.dimension() == net.minecraft.world.level.Level.OVERWORLD) {
-                        BlockPos startPos = quest.getStartingPos();
-                        if (pos.getX() >= startPos.getX() - 1 && pos.getX() <= startPos.getX() + 1 &&
-                            pos.getZ() >= startPos.getZ() - 1 && pos.getZ() <= startPos.getZ() + 1 &&
-                            pos.getY() >= startPos.getY() && pos.getY() <= startPos.getY() + 2) {
-                            event.setCanceled(true);
-                            if (event.getPlayer() instanceof ServerPlayer sp) {
-                                sp.sendSystemMessage(Component.literal("§c[TNM Quests] You cannot break quest cargo blocks!"));
-                            }
-                            return;
-                        }
+    /** Returns the active quest whose cargo sublevel (or a tracked split fragment) owns this dimension, or null. */
+    private static QuestModel getQuestForCargoDimension(ServerLevel level) {
+        String dimPath = level.dimension().location().getPath();
+        for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
+            if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
+                java.util.UUID cargoId = quest.getCargoEntityId();
+                if (cargoId != null && dimPath.contains(cargoId.toString())) {
+                    return quest;
+                }
+                for (java.util.UUID fragmentId : quest.getCargoFragmentIds()) {
+                    if (dimPath.contains(fragmentId.toString())) {
+                        return quest;
                     }
                 }
             }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the active quest whose Overworld cargo spawn region contains this position, or null.
+     * The region is sized from the quest's schematic (with a 1-block settle margin below),
+     * covering the window where cargo blocks physically exist in the Overworld
+     * (between template placement and Sable assembly, or if the assembly failed).
+     */
+    private static QuestModel getQuestForOverworldCargoPos(ServerLevel level, BlockPos pos) {
+        if (level.dimension() != net.minecraft.world.level.Level.OVERWORLD) {
+            return null;
+        }
+        for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
+            if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
+                int w = 3, h = 3, l = 3; // fallback when schematic is unavailable
+                String schematicName = quest.getSchematicName();
+                if (schematicName != null && !schematicName.isEmpty()) {
+                    net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate template =
+                        ADQSchematicManager.getSchematic(level, schematicName);
+                    if (template != null) {
+                        net.minecraft.core.Vec3i size = template.getSize();
+                        w = size.getX();
+                        h = size.getY();
+                        l = size.getZ();
+                    }
+                }
+                BlockPos startPos = quest.getStartingPos();
+                BlockPos origin = startPos.offset(-w / 2, 0, -l / 2);
+                if (pos.getX() >= origin.getX() && pos.getX() < origin.getX() + w &&
+                    pos.getZ() >= origin.getZ() && pos.getZ() < origin.getZ() + l &&
+                    pos.getY() >= origin.getY() - 1 && pos.getY() < origin.getY() + h) {
+                    return quest;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Returns the active quest owning this cargo block position (sublevel dimension or Overworld spawn region), or null. */
+    private static QuestModel getQuestForCargoBlock(ServerLevel level, BlockPos pos) {
+        QuestModel quest = getQuestForCargoDimension(level);
+        if (quest != null) {
+            return quest;
+        }
+        return getQuestForOverworldCargoPos(level, pos);
+    }
+
+    @SubscribeEvent
+    public static void onBlockBreak(net.neoforged.neoforge.event.level.BlockEvent.BreakEvent event) {
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        BlockPos pos = event.getPos();
+        QuestModel quest = getQuestForCargoBlock(serverLevel, pos);
+        if (quest == null) {
+            return;
+        }
+
+        // Cargo blocks never drop items: always take over the break handling.
+        event.setCanceled(true);
+
+        if (ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) {
+            if (event.getPlayer() instanceof ServerPlayer sp) {
+                sp.sendSystemMessage(Component.literal("§c[TNM Quests] Cargo blocks are protected and cannot be broken."));
+            }
+        } else {
+            // Breakable mode: remove the block manually with drops disabled.
+            serverLevel.destroyBlock(pos, false, event.getPlayer());
         }
     }
 
@@ -141,54 +206,66 @@ public class ADQEventHandler {
     public static void onBlockPlace(net.neoforged.neoforge.event.level.BlockEvent.EntityPlaceEvent event) {
         if (!ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) return;
 
-        net.minecraft.world.level.LevelAccessor level = event.getLevel();
-        if (level instanceof ServerLevel serverLevel) {
-            String dimPath = serverLevel.dimension().location().getPath();
-            for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
-                if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
-                    java.util.UUID cargoId = quest.getCargoEntityId();
-                    if (cargoId != null && dimPath.contains(cargoId.toString())) {
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
+        if (event.getLevel() instanceof ServerLevel serverLevel) {
+            if (getQuestForCargoDimension(serverLevel) != null) {
+                event.setCanceled(true);
             }
         }
     }
 
     @SubscribeEvent
     public static void onExplosionDetonate(net.neoforged.neoforge.event.level.ExplosionEvent.Detonate event) {
-        if (!ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) return;
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        boolean invulnerable = ADQConfig.ENABLE_CARGO_INVULNERABILITY.get();
 
-        if (event.getLevel() instanceof ServerLevel serverLevel) {
-            String dimPath = serverLevel.dimension().location().getPath();
-            for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
-                if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
-                    java.util.UUID cargoId = quest.getCargoEntityId();
-                    if (cargoId != null && dimPath.contains(cargoId.toString())) {
-                        event.getAffectedBlocks().clear();
-                        return;
-                    }
+        // Case 1: the whole dimension belongs to a cargo sublevel (or split fragment).
+        if (getQuestForCargoDimension(serverLevel) != null) {
+            if (invulnerable) {
+                event.getAffectedBlocks().clear();
+            } else {
+                // Breakable: let the explosion destroy cargo blocks, but with no drops.
+                List<BlockPos> cargoBlocks = new java.util.ArrayList<>(event.getAffectedBlocks());
+                event.getAffectedBlocks().clear();
+                for (BlockPos p : cargoBlocks) {
+                    serverLevel.destroyBlock(p, false);
                 }
             }
+            return;
+        }
+
+        // Case 2: Overworld — filter only the affected blocks inside a cargo spawn region.
+        java.util.List<BlockPos> noDropDestroy = new java.util.ArrayList<>();
+        java.util.Iterator<BlockPos> it = event.getAffectedBlocks().iterator();
+        while (it.hasNext()) {
+            BlockPos p = it.next();
+            if (getQuestForOverworldCargoPos(serverLevel, p) != null) {
+                it.remove();
+                if (!invulnerable) {
+                    noDropDestroy.add(p);
+                }
+            }
+        }
+        for (BlockPos p : noDropDestroy) {
+            serverLevel.destroyBlock(p, false);
         }
     }
 
     @SubscribeEvent
     public static void onLivingDestroyBlock(net.neoforged.neoforge.event.entity.living.LivingDestroyBlockEvent event) {
-        if (!ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) return;
+        if (!(event.getEntity().level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        BlockPos pos = event.getPos();
+        if (getQuestForCargoBlock(serverLevel, pos) == null) {
+            return;
+        }
 
-        if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-            String dimPath = serverLevel.dimension().location().getPath();
-            for (QuestModel quest : QuestGenerator.getAvailableQuests()) {
-                if (quest.getAcceptedBy() != null && !quest.isCompleted()) {
-                    java.util.UUID cargoId = quest.getCargoEntityId();
-                    if (cargoId != null && dimPath.contains(cargoId.toString())) {
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
-            }
+        event.setCanceled(true);
+        if (!ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) {
+            // Breakable: mimic the destruction without dropping items.
+            serverLevel.destroyBlock(pos, false, event.getEntity());
         }
     }
 

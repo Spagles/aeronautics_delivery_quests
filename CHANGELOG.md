@@ -4,6 +4,11 @@
 - **New Name**: *Aeronautics Delivery Quests (ADQ)* is now **TNM Aeronautics Quests**. The display name, mod description, in-game chat prefix (`[ADQ]` → `[TNM Quests]`), and all documentation have been updated.
 - **Full Save Compatibility**: The mod ID remains `aeronautics_delivery_quests`, so existing worlds, block registries, `aeronautics_delivery_quests.toml` config, `custom_quests.json`, and saved quest/cooldown data all carry over untouched. The `/adq` command is unchanged.
 
+#### Cargo Protection Overhaul
+- **True Invulnerability**: With `enableCargoInvulnerability` on, cargo is now protected from *all* destruction sources in both the Sable sublevel dimension and the Overworld spawn region — player breaks, explosions (previously unprotected in the Overworld), and mob block-destruction. The Overworld protection region is now correctly sized from the quest's schematic instead of a hardcoded 3×3×3 box.
+- **No Cargo Item Drops — Ever**: Regardless of the invulnerability setting, destroyed cargo blocks never drop their items. In breakable mode the block is removed (and still reduces the delivery payout), but yields no loot.
+- **Split Fragment Tracking**: When a cargo contraption is fractured into multiple Sable physics bodies, the detached pieces are now detected (via Sable's split-from marker) and recorded on the quest. Fragments inherit full cargo block protection, and are removed together with the main cargo body when the quest completes, fails, or is cancelled — no more permanent debris. The quest continues to target the main body, and blocks lost to split-off pieces count as missing mass for reward scaling.
+
 #### Build System & Metadata Updates
 - **NeoForge Build Target**: Bumped the build target from NeoForge 21.1.65 to 21.1.236 (minimum supported version remains 21.1.65).
 - **Modernized Dependency Declarations**: Replaced the legacy Forge-style `mandatory=true` dependency syntax in `neoforge.mods.toml` with NeoForge's `type="required"`.

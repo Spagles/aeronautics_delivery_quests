@@ -25,6 +25,9 @@ public class QuestModel {
     private long creationTime;
     private int originalBlockCount;
     private String schematicName;
+    // Sublevels that split off the main cargo body (tracked so they can be cleaned up
+    // with the quest). May be null when deserialized from pre-1.1.0 quest files.
+    private List<UUID> cargoFragmentIds;
 
     public QuestModel(UUID questId, String name, String description, BlockPos startingPos, BlockPos endingPos, String weightClass, double actualWeight, List<String> rewards) {
         this.questId = questId;
@@ -79,6 +82,35 @@ public class QuestModel {
     
     public UUID getCargoEntityId() { return cargoEntityId; }
     public void setCargoEntityId(UUID cargoEntityId) { this.cargoEntityId = cargoEntityId; }
+
+    public synchronized List<UUID> getCargoFragmentIds() {
+        if (cargoFragmentIds == null) {
+            cargoFragmentIds = new java.util.ArrayList<>();
+        }
+        return cargoFragmentIds;
+    }
+
+    public synchronized boolean addCargoFragmentId(UUID fragmentId) {
+        List<UUID> fragments = getCargoFragmentIds();
+        if (fragmentId == null || fragments.contains(fragmentId)) {
+            return false;
+        }
+        fragments.add(fragmentId);
+        return true;
+    }
+
+    /** True if the given sublevel UUID is the main cargo body or any tracked split fragment. */
+    public synchronized boolean isCargoSubLevel(UUID subLevelId) {
+        if (subLevelId == null) return false;
+        if (subLevelId.equals(cargoEntityId)) return true;
+        return cargoFragmentIds != null && cargoFragmentIds.contains(subLevelId);
+    }
+
+    public synchronized void clearCargoFragments() {
+        if (cargoFragmentIds != null) {
+            cargoFragmentIds.clear();
+        }
+    }
 
     public boolean isCargoPickedUp() { return cargoPickedUp; }
     public void setCargoPickedUp(boolean cargoPickedUp) { this.cargoPickedUp = cargoPickedUp; }

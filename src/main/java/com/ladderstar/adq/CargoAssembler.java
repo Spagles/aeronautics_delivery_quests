@@ -102,9 +102,16 @@ public class CargoAssembler {
         BlockPos startPos = quest.getStartingPos();
         LOGGER.info("[TNM Quests] Cleaning up cargo blocks/entities for quest: {}", quest.getName());
 
-        // 1. Remove physical Sable sublevel
-        if (ModList.get().isLoaded("sable") && quest.getCargoEntityId() != null) {
-            removePhysicsEntity(level, quest);
+        // 1. Remove physical Sable sublevel (main cargo body plus any split-off fragments)
+        if (ModList.get().isLoaded("sable")) {
+            if (quest.getCargoEntityId() != null) {
+                removePhysicsEntity(level, quest.getCargoEntityId());
+            }
+            for (UUID fragmentId : new java.util.ArrayList<>(quest.getCargoFragmentIds())) {
+                LOGGER.info("[TNM Quests] Removing split-off cargo fragment sublevel {} for quest '{}'", fragmentId, quest.getName());
+                removePhysicsEntity(level, fragmentId);
+            }
+            quest.clearCargoFragments();
         }
 
         // 2. Clear structural blocks in the Overworld based on schematic size
@@ -248,14 +255,14 @@ public class CargoAssembler {
         return false;
     }
 
-    private static void removePhysicsEntity(ServerLevel level, QuestModel quest) {
+    private static void removePhysicsEntity(ServerLevel level, UUID subLevelId) {
         try {
-            LOGGER.info("[TNM Quests] De-allocating Sable sublevel with UUID {}", quest.getCargoEntityId());
+            LOGGER.info("[TNM Quests] De-allocating Sable sublevel with UUID {}", subLevelId);
             for (ServerLevel sl : level.getServer().getAllLevels()) {
-                dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer container = 
+                dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer container =
                     dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer.getContainer(sl);
                 if (container != null) {
-                    dev.ryanhcode.sable.sublevel.SubLevel sub = container.getSubLevel(quest.getCargoEntityId());
+                    dev.ryanhcode.sable.sublevel.SubLevel sub = container.getSubLevel(subLevelId);
                     if (sub != null) {
                         container.removeSubLevel(sub, dev.ryanhcode.sable.sublevel.storage.SubLevelRemovalReason.REMOVED);
                         LOGGER.info("[TNM Quests] Successfully removed Sable physics sublevel from dimension registry: {}", sl.dimension().location());
