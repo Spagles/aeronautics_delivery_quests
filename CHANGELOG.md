@@ -1,26 +1,24 @@
 ### TNM Aeronautics Quests - v1.1.0 Changelog
 
-#### TNM Rebranding
-- **New Name**: *Aeronautics Delivery Quests (ADQ)* is now **TNM Aeronautics Quests**. The display name, mod description, in-game chat prefix (`[ADQ]` → `[TNM Quests]`), and all documentation have been updated.
-- **Full Save Compatibility**: The mod ID remains `aeronautics_delivery_quests`, so existing worlds, block registries, `aeronautics_delivery_quests.toml` config, `custom_quests.json`, and saved quest/cooldown data all carry over untouched. The `/adq` command is unchanged.
+#### ✈️ TNM Rebranding
+- **New Name**: *Aeronautics Delivery Quests (ADQ)* is now **TNM Aeronautics Quests**! The mod name, description, and in-game chat prefix (`[ADQ]` → `[TNM Quests]`) have all been updated.
+- **Your Worlds Are Safe**: This is purely a rename — the internal mod ID stays `aeronautics_delivery_quests`, so existing worlds, placed Delivery Quests Tables, configs (`aeronautics_delivery_quests.toml`, `custom_quests.json`), saved quests, and cooldowns all carry over untouched. The `/adq` command works exactly as before. Just drop in the new jar.
 
-#### Cargo Protection Overhaul
-- **Invulnerability Actually Works Now**: The old protection matched cargo by *dimension name*, but Sable embeds sublevel blocks in plots at remote holding-chunk coordinates of the host level — so the check never matched anything and `enableCargoInvulnerability` silently did nothing. Protection now matches block positions against the cargo sublevel's **plot bounding box** (main body and split fragments), covering player breaks, block placement, explosions, and mob block-destruction. The Overworld spawn-region protection is also now correctly sized from the quest's schematic instead of a hardcoded 3×3×3 box.
-- **No Cargo Item Drops — Ever**: Regardless of the invulnerability setting, destroyed cargo blocks never drop their items. In breakable mode the block is removed (and still reduces the delivery payout), but yields no loot.
-- **Split Fragment Tracking**: When a cargo contraption is fractured into multiple Sable physics bodies, the detached pieces are now detected (via Sable's split-from marker) and recorded on the quest. Fragments inherit full cargo block protection, and are removed together with the main cargo body when the quest completes, fails, or is cancelled — no more permanent debris. The quest continues to target the main body, and blocks lost to split-off pieces count as missing mass for reward scaling.
+#### 🔒 Cargo Protection Overhaul
+- **Cargo Invulnerability Fixed**: The `enableCargoInvulnerability` option previously had no effect — cargo could always be broken. It now genuinely protects cargo everywhere it exists: on the physics contraption *and* at the pickup site, against player mining, block placement, explosions, and mob griefing. Protection coverage also now matches the full size of the cargo instead of a small fixed area.
+- **No More Free Loot**: Cargo blocks **never drop items** when destroyed — with invulnerability on *or* off. You can no longer mine iron blocks (or anything else) out of a delivery crate. In breakable mode, destroyed blocks still reduce the delivery payout as damage; they just yield nothing.
+- **Split Cargo Fully Recalled**: If a cargo contraption gets fractured into multiple physics pieces, all detached pieces are now tracked as part of the quest. They get the same block protection, and every piece is recalled together when the contract is completed, cancelled, or failed — no more orphaned debris floating around your world. The compass and delivery check keep targeting the main body, and blocks lost to broken-off pieces count as missing mass toward the damage penalty.
 
-#### Quest Generation Fixes
-- **Out-of-Sight Cargo Pre-Spawning**: Physical cargo is now spawned and physics-compiled while the approaching pilot is still far away (new `cargoSpawnDistance` config, default 250 blocks — beyond typical client render distance), so players never see it pop into existence. The "Cargo Secured" step, compass switch, and announcements still trigger at the pickup point (15 blocks) as before. Failed physics assemblies retry at most every 30 seconds.
-- **Requester-Centered Generation**: Quests generated via `/adq generate` or the board's Generate/Fill buttons now search for pickup locations around the player who triggered them, instead of a random online player (which could place pickups tens of thousands of blocks away on servers with spread-out players). Automatic periodic generation still covers the whole player spread.
-- **No More Underwater Cargo**: The safe-spawn fallback previously measured height from the highest *solid* block — the seabed — so cargo over oceans could spawn dozens of blocks underwater. The fallback now clamps to the fluid surface, so cargo lands on top of the water instead.
-- **No More Void Drops**: On floating-island/void world types, quest generation and custom-coordinate resolution now detect empty columns (no surface at all) and abort with the standard generation-failure announcement, instead of spawning cargo over open void.
+#### 📦 Smarter Cargo Spawning
+- **No More Pop-In**: Cargo now spawns while the approaching pilot is still far outside render distance (new `cargoSpawnDistance` config, default 250 blocks), so it's already sitting on the ground by the time you can see the pickup site. Securing the cargo, the compass switch, and server announcements still happen when you reach the pickup point, same as before.
+- **Nearby Contracts for the Requester**: Using `/adq generate` or the board's Generate/Fill buttons now searches for pickup locations around *you*, instead of around a random online player — no more contracts spawning tens of thousands of blocks away on servers with spread-out players. Automatic background generation still spreads quests across the whole community.
+- **No More Underwater Cargo**: Cargo destined for ocean areas previously could spawn on the seabed, dozens of blocks underwater. It now lands on top of the water surface instead.
+- **No More Void Drops**: On floating-island and void world types, quest generation now detects when there's no ground at all and cleanly retries elsewhere, instead of dropping cargo into the abyss.
 
-#### Build System & Metadata Updates
-- **NeoForge Build Target**: Bumped the build target from NeoForge 21.1.65 to 21.1.236 (minimum supported version remains 21.1.65).
-- **Modernized Dependency Declarations**: Replaced the legacy Forge-style `mandatory=true` dependency syntax in `neoforge.mods.toml` with NeoForge's `type="required"`.
-- **Publishing Plugin**: Updated `me.modmuss50.mod-publish-plugin` from `2.0.0-beta.1` to stable `2.1.1`.
-- **Portable Builds**: Removed a machine-specific `org.gradle.java.home` path from the committed `gradle.properties` (set it in your local `~/.gradle/gradle.properties` if needed).
-- **Deprecation Cleanup**: Removed the deprecated-for-removal `bus = ...` parameter from `@EventBusSubscriber` annotations (NeoForge now infers the correct bus automatically), producing a warning-free compile.
+#### 🛠️ Under the Hood
+- Updated the build to the latest NeoForge for 1.21.1 (21.1.236); servers on NeoForge 21.1.65 or newer remain fully supported.
+- Modernized mod metadata to NeoForge's current dependency format and cleaned up deprecated API usage for a warning-free build.
+- Updated the release/publishing toolchain (mod-publish-plugin 2.1.1) and made the project build cleanly on any machine.
 
 ---
 

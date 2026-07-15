@@ -31,11 +31,13 @@
 **No.** To prevent the classic "structure-lookup tick spikes," all village searches and pathfinding calculations are run on **fully asynchronous background threads** (`ForkJoinPool`). Only the final block placement is scheduled on the main thread, keeping your server running at a solid 20 TPS.
 
 ### 🛡️ Will this block players from modifying their own airships?
-**No.** The block protection is highly targeted. It strictly intercepts block-breaking inside matching Sable SubLevel UUIDs or Overworld pickup coordinates corresponding to an *active delivery quest*, and only triggers if `enableCargoInvulnerability` is enabled in the config. Normal airships, blocks, and structures remain 100% destructible.
+**No.** The block protection is highly targeted: it only intercepts destruction inside the exact physics-body bounds of an *active delivery quest's* cargo (including any pieces that break off it) and its Overworld pickup footprint. Invulnerability shielding only applies when `enableCargoInvulnerability` is enabled in the config. Normal airships, blocks, and structures remain 100% destructible. One rule always applies regardless of the setting: **cargo blocks never drop their items**, so contracts can't be mined for free loot.
 
-### 🌀 What happens if cargo spawns outside the world border, underground, or inside buildings?
+### 🌀 What happens if cargo spawns outside the world border, underground, underwater, or inside buildings?
+*   **Out-of-Sight Pre-Spawning**: Cargo materializes while the approaching pilot is still beyond render distance (`cargoSpawnDistance`, default 250 blocks), so nobody ever sees it pop in.
 *   **Safe Air-Column Spawning**: The mod scans a horizontal $33\times33$ area around the start coordinates to find a solid, flat footprint. It checks that the entire spawn space (and the air blocks below it) is 100% empty air, spawning the cargo 3 blocks in the air so it falls cleanly under gravity without clipping or breaking blocks.
 *   **Vertical Safety Fallback**: If no flat terrain is found nearby, the mod safely spawns the cargo 4 blocks above the highest solid block in the original target coordinates, guaranteeing it never clips inside ground structures or houses.
+*   **Water & Void Safety**: Over oceans and lakes, cargo lands on the water surface instead of sinking to the seabed. On floating-island/void world types, generation detects empty columns and retries elsewhere instead of dropping cargo into the void.
 *   **Border Buffer**: The engine enforces a strict **150-block safety buffer** from your world border. If a potential spawn is too close to or outside the border, it is aborted instantly.
 
 ### 💾 Does it survive server restarts?
