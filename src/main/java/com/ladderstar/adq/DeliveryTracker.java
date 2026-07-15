@@ -24,6 +24,21 @@ import java.util.UUID;
 public class DeliveryTracker {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    // In-memory backoff so a failed Sable assembly (mod missing, schematic error) is
+    // retried at most every 30 seconds instead of every tracker tick.
+    private static final java.util.Map<UUID, Long> spawnAttemptBackoff = new java.util.HashMap<>();
+    private static final long SPAWN_RETRY_MS = 30_000L;
+
+    private static boolean canAttemptSpawn(QuestModel quest) {
+        long now = System.currentTimeMillis();
+        Long lastAttempt = spawnAttemptBackoff.get(quest.getQuestId());
+        if (lastAttempt != null && now - lastAttempt < SPAWN_RETRY_MS) {
+            return false;
+        }
+        spawnAttemptBackoff.put(quest.getQuestId(), now);
+        return true;
+    }
+
     public static void tick(ServerLevel level) {
         if (level.dimension() != net.minecraft.world.level.Level.OVERWORLD) {
             return;
@@ -65,13 +80,27 @@ public class DeliveryTracker {
                         // Show HUD feed (Using Create's kpg weight branding)
                         player.sendSystemMessage(Component.literal("§6[TNM Quests] Travel to Cargo pickup: §f" + (int)distance + " blocks"), true);
 
-                        if (distance <= 15.0) {
+                        // Stage 0a: Pre-spawn the physical cargo while the pilot is still well
+                        // outside render distance, so it is never seen popping in.
+                        if (quest.getCargoEntityId() == null
+                                && distance <= ADQConfig.CARGO_SPAWN_DISTANCE.get()
+                                && canAttemptSpawn(quest)) {
                             boolean spawned = CargoAssembler.spawnAndAssembleCargo(player, quest);
                             if (spawned) {
+                                spawnAttemptBackoff.remove(quest.getQuestId());
+                                QuestGenerator.saveQuests();
+                                LOGGER.info("[TNM Quests] Pre-spawned cargo for quest '{}' at {} ({} blocks ahead of pilot {}).",
+                                        quest.getName(), quest.getStartingPos().toShortString(), (int) distance, player.getName().getString());
+                            }
+                        }
+
+                        // Stage 0b: Secure the cargo once the pilot actually arrives.
+                        if (distance <= 15.0) {
+                            if (quest.getCargoEntityId() != null) {
                                 quest.setCargoPickedUp(true);
                                 QuestGenerator.saveQuests();
 
-                                playerLevel.playSound(null, player.getX(), player.getY(), player.getZ(), 
+                                playerLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
                                         SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 1.0F, 1.0F);
 
                                 player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Cargo Secured! §7The delivery location has been marked. Quest Compass updated."));

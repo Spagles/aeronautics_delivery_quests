@@ -17,6 +17,7 @@
 *   **🧭 Virtual Calibration Compasses:** Issues vanilla Quest Compasses that point dynamically to cargo pickups or destination locations. Lost your compass? Retrieve a replacement instantly using the board's GUI control panel inside the table's menu.
 *   **🔒 Damage Penalties & Shielding:** Configurable invulnerability (`enableCargoInvulnerability`). When off (default), cargo blocks can break, and any missing mass proportionally reduces your reward payout! When on, cargo is fully shielded from breakages, explosions, and mob griefing. In both modes, cargo blocks **never drop their items** — no free loot from delivery contracts.
 *   **🧩 Split Tracking & Debris Cleanup:** If a cargo contraption is fractured into multiple physics bodies, the quest keeps targeting the main body (blocks lost to split-off pieces count as missing mass), detached fragments inherit full block protection, and all fragments are cleaned up together with the cargo when the quest completes, fails, or is cancelled.
+*   **👻 Seamless Cargo Spawning:** Physical cargo is pre-spawned while the approaching pilot is still outside render distance (`cargoSpawnDistance`, default 250 blocks), so it is already sitting there when they arrive — no visible pop-in. Securing still happens at the pickup point.
 *   **⏳ Board Expirations & Player Cooldowns:** Unaccepted contracts on the board cycle out after 60 minutes. A 1-hour player cooldown prevents quest-spamming (automatically bypassed for admins/operators).
 
 ---

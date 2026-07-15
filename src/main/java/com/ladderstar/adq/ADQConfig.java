@@ -31,6 +31,7 @@ public class ADQConfig {
     public static final ModConfigSpec.DoubleValue REWARD_REDUCTION_SCALE;
     public static final ModConfigSpec.BooleanValue ENABLE_CARGO_INVULNERABILITY;
     public static final ModConfigSpec.IntValue MIN_START_DISTANCE;
+    public static final ModConfigSpec.IntValue CARGO_SPAWN_DISTANCE;
     public static final ModConfigSpec.EnumValue<QuestGenerationMode> QUEST_GEN_MODE;
 
     public static final ModConfigSpec.BooleanValue ANNOUNCE_ACCEPT;
@@ -95,6 +96,12 @@ public class ADQConfig {
         MIN_START_DISTANCE = BUILDER
                 .comment("Minimum distance in blocks between the player and the generated quest starting pickup location.")
                 .defineInRange("minStartDistance", 300, 0, 5000);
+
+        CARGO_SPAWN_DISTANCE = BUILDER
+                .comment("Distance in blocks from the pickup location at which the physical cargo is pre-spawned for the approaching pilot.\n" +
+                         "Keep this comfortably above the server's typical client render distance so players never see the cargo pop in\n" +
+                         "(e.g. a 10-chunk render distance is 160 blocks; the default 250 stays out of sight).")
+                .defineInRange("cargoSpawnDistance", 250, 32, 1000);
 
         QUEST_GEN_MODE = BUILDER
                 .comment("Quest generation mode. Controls how quest information (name, reward, schematic, weight) is selected:\n" +
