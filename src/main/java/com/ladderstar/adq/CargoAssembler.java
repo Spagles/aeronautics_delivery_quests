@@ -34,7 +34,7 @@ public class CargoAssembler {
 
         StructureTemplate template = ADQSchematicManager.getSchematic(level, quest.getSchematicName());
         if (template == null) {
-            LOGGER.error("[ADQ] Failed to load cargo schematic: {}", quest.getSchematicName());
+            LOGGER.error("[TNM Quests] Failed to load cargo schematic: {}", quest.getSchematicName());
             return false;
         }
 
@@ -43,20 +43,20 @@ public class CargoAssembler {
         int H = size.getY();
         int L = size.getZ();
 
-        LOGGER.info("[ADQ] Spawning physical cargo '{}' (Schematic: {}, Size: {}x{}x{})", 
+        LOGGER.info("[TNM Quests] Spawning physical cargo '{}' (Schematic: {}, Size: {}x{}x{})", 
                 quest.getName(), quest.getSchematicName(), W, H, L);
 
         // 3. Proximity Spawning Scan (non-destructive search for a flat clear spot)
         BlockPos spawnPos = findClearSpawningSpot(level, originalStartPos, player.blockPosition(), W, H, L);
         if (spawnPos != null) {
             if (!spawnPos.equals(originalStartPos)) {
-                LOGGER.info("[ADQ] Proximity scan relocated cargo from {} to clear spot at {}", 
+                LOGGER.info("[TNM Quests] Proximity scan relocated cargo from {} to clear spot at {}", 
                         originalStartPos.toShortString(), spawnPos.toShortString());
                 quest.setStartingPos(spawnPos);
                 QuestGenerator.saveQuests();
             }
         } else {
-            LOGGER.warn("[ADQ] No clear spawning spot found around pickup location. Spawning at original position.");
+            LOGGER.warn("[TNM Quests] No clear spawning spot found around pickup location. Spawning at original position.");
             spawnPos = originalStartPos;
         }
 
@@ -67,7 +67,7 @@ public class CargoAssembler {
         try {
             template.placeInWorld(level, placeOrigin, placeOrigin, settings, level.getRandom(), 2);
         } catch (Exception e) {
-            LOGGER.error("[ADQ] Failed to place cargo structure template in level", e);
+            LOGGER.error("[TNM Quests] Failed to place cargo structure template in level", e);
             return false;
         }
 
@@ -92,7 +92,7 @@ public class CargoAssembler {
         if (ModList.get().isLoaded("sable")) {
             assembled = assemblePhysicsContraption(level, spawnPos, placeOrigin, W, H, L, blockSet, quest);
         } else {
-            LOGGER.warn("[ADQ] Sable Physics Engine is not loaded! Cannot compile physical contraption.");
+            LOGGER.warn("[TNM Quests] Sable Physics Engine is not loaded! Cannot compile physical contraption.");
         }
 
         return assembled;
@@ -100,7 +100,7 @@ public class CargoAssembler {
 
     public static void removeCargo(ServerLevel level, QuestModel quest) {
         BlockPos startPos = quest.getStartingPos();
-        LOGGER.info("[ADQ] Cleaning up cargo blocks/entities for quest: {}", quest.getName());
+        LOGGER.info("[TNM Quests] Cleaning up cargo blocks/entities for quest: {}", quest.getName());
 
         // 1. Remove physical Sable sublevel
         if (ModList.get().isLoaded("sable") && quest.getCargoEntityId() != null) {
@@ -212,7 +212,7 @@ public class CargoAssembler {
                 }
             }
             bestPos = new BlockPos(center.getX(), maxY + 4, center.getZ());
-            LOGGER.warn("[ADQ] Proximity scan failed to find a flat clear spot. Using safe air fallback at {}", bestPos.toShortString());
+            LOGGER.warn("[TNM Quests] Proximity scan failed to find a flat clear spot. Using safe air fallback at {}", bestPos.toShortString());
         }
 
         return bestPos;
@@ -220,7 +220,7 @@ public class CargoAssembler {
 
     private static boolean assemblePhysicsContraption(ServerLevel level, BlockPos spawnPos, BlockPos placeOrigin, int W, int H, int L, Set<BlockPos> blockSet, QuestModel quest) {
         try {
-            LOGGER.info("[ADQ] Compiling Sable physics sublevel at {} relative to {}", spawnPos.toShortString(), placeOrigin.toShortString());
+            LOGGER.info("[TNM Quests] Compiling Sable physics sublevel at {} relative to {}", spawnPos.toShortString(), placeOrigin.toShortString());
 
             dev.ryanhcode.sable.companion.math.BoundingBox3i bounds = new dev.ryanhcode.sable.companion.math.BoundingBox3i(
                 placeOrigin.getX(), placeOrigin.getY(), placeOrigin.getZ(),
@@ -237,20 +237,20 @@ public class CargoAssembler {
 
             if (subLevel != null) {
                 quest.setCargoEntityId(subLevel.getUniqueId());
-                LOGGER.info("[ADQ] Successfully compiled Sable physics sublevel: {}", subLevel.getUniqueId());
+                LOGGER.info("[TNM Quests] Successfully compiled Sable physics sublevel: {}", subLevel.getUniqueId());
                 return true;
             } else {
-                LOGGER.error("[ADQ] Sable assembleBlocks returned null!");
+                LOGGER.error("[TNM Quests] Sable assembleBlocks returned null!");
             }
         } catch (Throwable t) {
-            LOGGER.error("[ADQ] Failed to assemble Sable physics contraption", t);
+            LOGGER.error("[TNM Quests] Failed to assemble Sable physics contraption", t);
         }
         return false;
     }
 
     private static void removePhysicsEntity(ServerLevel level, QuestModel quest) {
         try {
-            LOGGER.info("[ADQ] De-allocating Sable sublevel with UUID {}", quest.getCargoEntityId());
+            LOGGER.info("[TNM Quests] De-allocating Sable sublevel with UUID {}", quest.getCargoEntityId());
             for (ServerLevel sl : level.getServer().getAllLevels()) {
                 dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer container = 
                     dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer.getContainer(sl);
@@ -258,13 +258,13 @@ public class CargoAssembler {
                     dev.ryanhcode.sable.sublevel.SubLevel sub = container.getSubLevel(quest.getCargoEntityId());
                     if (sub != null) {
                         container.removeSubLevel(sub, dev.ryanhcode.sable.sublevel.storage.SubLevelRemovalReason.REMOVED);
-                        LOGGER.info("[ADQ] Successfully removed Sable physics sublevel from dimension registry: {}", sl.dimension().location());
+                        LOGGER.info("[TNM Quests] Successfully removed Sable physics sublevel from dimension registry: {}", sl.dimension().location());
                         break;
                     }
                 }
             }
         } catch (Throwable t) {
-            LOGGER.error("[ADQ] Failed to remove Sable physics sublevel", t);
+            LOGGER.error("[TNM Quests] Failed to remove Sable physics sublevel", t);
         }
     }
 }

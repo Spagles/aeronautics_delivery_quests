@@ -1,3 +1,18 @@
+### TNM Aeronautics Quests - v1.1.0 Changelog
+
+#### TNM Rebranding
+- **New Name**: *Aeronautics Delivery Quests (ADQ)* is now **TNM Aeronautics Quests**. The display name, mod description, in-game chat prefix (`[ADQ]` → `[TNM Quests]`), and all documentation have been updated.
+- **Full Save Compatibility**: The mod ID remains `aeronautics_delivery_quests`, so existing worlds, block registries, `aeronautics_delivery_quests.toml` config, `custom_quests.json`, and saved quest/cooldown data all carry over untouched. The `/adq` command is unchanged.
+
+#### Build System & Metadata Updates
+- **NeoForge Build Target**: Bumped the build target from NeoForge 21.1.65 to 21.1.236 (minimum supported version remains 21.1.65).
+- **Modernized Dependency Declarations**: Replaced the legacy Forge-style `mandatory=true` dependency syntax in `neoforge.mods.toml` with NeoForge's `type="required"`.
+- **Publishing Plugin**: Updated `me.modmuss50.mod-publish-plugin` from `2.0.0-beta.1` to stable `2.1.1`.
+- **Portable Builds**: Removed a machine-specific `org.gradle.java.home` path from the committed `gradle.properties` (set it in your local `~/.gradle/gradle.properties` if needed).
+- **Deprecation Cleanup**: Removed the deprecated-for-removal `bus = ...` parameter from `@EventBusSubscriber` annotations (NeoForge now infers the correct bus automatically), producing a warning-free compile.
+
+---
+
 ### Aeronautics Delivery Quests (ADQ) - v1.0.3 Changelog
 
 #### GUI Polish & Interface Polish

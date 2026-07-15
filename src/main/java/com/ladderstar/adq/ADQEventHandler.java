@@ -21,13 +21,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-@EventBusSubscriber(modid = AeronauticsDeliveryQuests.MODID, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = AeronauticsDeliveryQuests.MODID)
 public class ADQEventHandler {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @SubscribeEvent
     public static void onServerStarting(ServerStartingEvent event) {
-        LOGGER.info("[ADQ] Server starting. Loading quests...");
+        LOGGER.info("[TNM Quests] Server starting. Loading quests...");
         ServerLevel overworld = event.getServer().overworld();
         ADQSchematicManager.loadSchematics(overworld);
         QuestGenerator.init(overworld);
@@ -35,7 +35,7 @@ public class ADQEventHandler {
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
-        LOGGER.info("[ADQ] Registering command structures...");
+        LOGGER.info("[TNM Quests] Registering command structures...");
         registerCommands(event.getDispatcher());
     }
 
@@ -92,7 +92,7 @@ public class ADQEventHandler {
                 }
                 if (removed) {
                     player.containerMenu.broadcastChanges();
-                    LOGGER.info("[ADQ] Purged orphan Quest Delivery Compass from logging-in player {}", player.getName().getString());
+                    LOGGER.info("[TNM Quests] Purged orphan Quest Delivery Compass from logging-in player {}", player.getName().getString());
                 }
             }
         }
@@ -113,7 +113,7 @@ public class ADQEventHandler {
                         if (ADQConfig.ENABLE_CARGO_INVULNERABILITY.get()) {
                             event.setCanceled(true);
                             if (event.getPlayer() instanceof ServerPlayer sp) {
-                                sp.sendSystemMessage(Component.literal("§c[ADQ] Cargo blocks are protected and cannot be broken."));
+                                sp.sendSystemMessage(Component.literal("§c[TNM Quests] Cargo blocks are protected and cannot be broken."));
                             }
                             return;
                         }
@@ -127,7 +127,7 @@ public class ADQEventHandler {
                             pos.getY() >= startPos.getY() && pos.getY() <= startPos.getY() + 2) {
                             event.setCanceled(true);
                             if (event.getPlayer() instanceof ServerPlayer sp) {
-                                sp.sendSystemMessage(Component.literal("§c[ADQ] You cannot break quest cargo blocks!"));
+                                sp.sendSystemMessage(Component.literal("§c[TNM Quests] You cannot break quest cargo blocks!"));
                             }
                             return;
                         }
@@ -272,13 +272,13 @@ public class ADQEventHandler {
             }
             QuestGenerator.loadQuests();
             QuestGenerator.loadCooldowns();
-            context.getSource().sendSuccess(() -> Component.literal("§a§l[ADQ] Admin: Quests and Cooldowns successfully reloaded from disk!"), true);
+            context.getSource().sendSuccess(() -> Component.literal("§a§l[TNM Quests] Admin: Quests and Cooldowns successfully reloaded from disk!"), true);
             if (player != null) {
                 clearActionCooldown(player, "reload");
             }
             return 1;
         } catch (Exception e) {
-            context.getSource().sendFailure(Component.literal("Failed to reload ADQ data: " + e.getMessage()));
+            context.getSource().sendFailure(Component.literal("Failed to reload quest data: " + e.getMessage()));
             return 0;
         }
     }
@@ -302,11 +302,11 @@ public class ADQEventHandler {
                     quest.setAcceptedTime(0);
 
                     QuestGenerator.saveQuests();
-                    player.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Canceled: §fThe delivery cargo has been recalled."));
+                    player.sendSystemMessage(Component.literal("§c§l[TNM Quests] Quest Canceled: §fThe delivery cargo has been recalled."));
                     
                     if (player.getServer() != null && ADQConfig.ANNOUNCE_CANCEL.get()) {
                         player.getServer().getPlayerList().broadcastSystemMessage(
-                            Component.literal("§6§l[ADQ] §c" + player.getName().getString() + " §7has canceled the contract: §e" + quest.getName() + "§7. Cargo recalled."),
+                            Component.literal("§6§l[TNM Quests] §c" + player.getName().getString() + " §7has canceled the contract: §e" + quest.getName() + "§7. Cargo recalled."),
                             false
                         );
                     }
@@ -387,7 +387,7 @@ public class ADQEventHandler {
             return 0;
         }
         QuestGenerator.generateNewQuestAsync(level, player != null ? player.getUUID() : null);
-        context.getSource().sendSuccess(() -> Component.literal("§a§l[ADQ] Admin: Procedural quest generation started in background. Check the quest board in a moment."), true);
+        context.getSource().sendSuccess(() -> Component.literal("§a§l[TNM Quests] Admin: Procedural quest generation started in background. Check the quest board in a moment."), true);
         return 1;
     }
 
@@ -428,7 +428,7 @@ public class ADQEventHandler {
             
             synchronized (quests) {
                 if (index < 0 || index >= quests.size()) {
-                    context.getSource().sendFailure(Component.literal("§c[ADQ] Invalid quest index. Please check active quest count."));
+                    context.getSource().sendFailure(Component.literal("§c[TNM Quests] Invalid quest index. Please check active quest count."));
                     return 0;
                 }
                 
@@ -440,7 +440,7 @@ public class ADQEventHandler {
                     ServerPlayer targetPlayer = (ServerPlayer) level.getPlayerByUUID(quest.getAcceptedBy());
                     if (targetPlayer != null) {
                         MarkerManager.clearMarkers(targetPlayer, quest);
-                        targetPlayer.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Force Deleted by Admin: §fThe delivery cargo has been recalled."));
+                        targetPlayer.sendSystemMessage(Component.literal("§c§l[TNM Quests] Quest Force Deleted by Admin: §fThe delivery cargo has been recalled."));
                     }
                     CargoAssembler.removeCargo(level, quest);
                 }
@@ -448,7 +448,7 @@ public class ADQEventHandler {
                 quests.remove(index);
                 QuestGenerator.saveQuests();
                 QuestBoardMenuHandler.resyncToAllPlayers(context.getSource().getServer());
-                context.getSource().sendSuccess(() -> Component.literal("§a§l[ADQ] Admin: Successfully deleted quest '" + quest.getName() + "'."), true);
+                context.getSource().sendSuccess(() -> Component.literal("§a§l[TNM Quests] Admin: Successfully deleted quest '" + quest.getName() + "'."), true);
                 if (player != null) {
                     clearActionCooldown(player, "delete");
                 }
@@ -476,7 +476,7 @@ public class ADQEventHandler {
                         ServerPlayer targetPlayer = (ServerPlayer) level.getPlayerByUUID(quest.getAcceptedBy());
                         if (targetPlayer != null) {
                             MarkerManager.clearMarkers(targetPlayer, quest);
-                            targetPlayer.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Force Deleted by Admin: §fThe delivery cargo has been recalled."));
+                            targetPlayer.sendSystemMessage(Component.literal("§c§l[TNM Quests] Quest Force Deleted by Admin: §fThe delivery cargo has been recalled."));
                         }
                         CargoAssembler.removeCargo(level, quest);
                     }
@@ -484,7 +484,7 @@ public class ADQEventHandler {
                 quests.clear();
                 QuestGenerator.saveQuests();
                 QuestBoardMenuHandler.resyncToAllPlayers(context.getSource().getServer());
-                context.getSource().sendSuccess(() -> Component.literal("§a§l[ADQ] Admin: Successfully deleted all " + count + " quests."), true);
+                context.getSource().sendSuccess(() -> Component.literal("§a§l[TNM Quests] Admin: Successfully deleted all " + count + " quests."), true);
                 if (player != null) {
                     clearActionCooldown(player, "deleteall");
                 }

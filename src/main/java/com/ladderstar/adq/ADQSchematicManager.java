@@ -29,7 +29,7 @@ public class ADQSchematicManager {
             }
             generateDefaultSchematicsIfEmpty();
         } catch (Exception e) {
-            LOGGER.error("[ADQ] Failed to initialize ADQSchematicManager", e);
+            LOGGER.error("[TNM Quests] Failed to initialize ADQSchematicManager", e);
         }
     }
 
@@ -49,9 +49,9 @@ public class ADQSchematicManager {
                 template.load(level.holderLookup(Registries.BLOCK), nbt);
                 String name = file.getName().replace(".nbt", "");
                 SCHEMATICS.put(name, template);
-                LOGGER.info("[ADQ] Loaded local schematic '{}' from config folder", name);
+                LOGGER.info("[TNM Quests] Loaded local schematic '{}' from config folder", name);
             } catch (Exception e) {
-                LOGGER.error("[ADQ] Failed to load schematic: " + file.getName(), e);
+                LOGGER.error("[TNM Quests] Failed to load schematic: " + file.getName(), e);
             }
         }
     }
@@ -65,9 +65,9 @@ public class ADQSchematicManager {
                 if (opt.isPresent()) {
                     return opt.get();
                 }
-                LOGGER.warn("[ADQ] Datapack schematic not found in ServerStructureManager: {}", schematicName);
+                LOGGER.warn("[TNM Quests] Datapack schematic not found in ServerStructureManager: {}", schematicName);
             } catch (Exception e) {
-                LOGGER.error("[ADQ] Failed to load datapack schematic: " + schematicName, e);
+                LOGGER.error("[TNM Quests] Failed to load datapack schematic: " + schematicName, e);
             }
         }
 
@@ -116,7 +116,7 @@ public class ADQSchematicManager {
 
     private static void generateDefaultSchematicsIfEmpty() {
         try {
-            LOGGER.info("[ADQ] Verifying and generating default cargo schematics programmatically...");
+            LOGGER.info("[TNM Quests] Verifying and generating default cargo schematics programmatically...");
 
             // 1. Light Cargo Crate (using simulated:rope_connector, has exactly 2)
             if (needsRegeneration("light_cargo_crate.nbt")) {
@@ -180,7 +180,7 @@ public class ADQSchematicManager {
             }
 
         } catch (Exception e) {
-            LOGGER.error("[ADQ] Failed to generate default schematics", e);
+            LOGGER.error("[TNM Quests] Failed to generate default schematics", e);
         }
     }
 
@@ -188,9 +188,9 @@ public class ADQSchematicManager {
         File file = schematicsDir.resolve(filename).toFile();
         try (OutputStream os = new FileOutputStream(file)) {
             NbtIo.writeCompressed(nbt, os);
-            LOGGER.info("[ADQ] Wrote default schematic file: {}", filename);
+            LOGGER.info("[TNM Quests] Wrote default schematic file: {}", filename);
         } catch (Exception e) {
-            LOGGER.error("[ADQ] Failed to write default schematic file: " + filename, e);
+            LOGGER.error("[TNM Quests] Failed to write default schematic file: " + filename, e);
         }
     }
 

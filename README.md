@@ -1,9 +1,12 @@
-# 🗺️ Aeronautics Delivery Quests (ADQ)
+# 🗺️ TNM Aeronautics Quests
 **A high-stakes trade expansion for Create: Aeronautics & Sable**
 
-**Aeronautics Delivery Quests (ADQ)** is a lightweight, high-performance NeoForge 1.21.1 mod that adds procedural hauling contracts to your server. Players can accept quests, travel to remote locations to secure physical cargo, and pilot their custom-built airships to transport these heavy rigid bodies to destination settlements for massive rewards.
+**TNM Aeronautics Quests** (formerly *Aeronautics Delivery Quests*) is a lightweight, high-performance NeoForge 1.21.1 mod that adds procedural hauling contracts to your server. Players can accept quests, travel to remote locations to secure physical cargo, and pilot their custom-built airships to transport these heavy rigid bodies to destination settlements for massive rewards.
 
-Best of all: **ADQ must be installed on both the client and server** (or just the client for singleplayer) to handle custom UI rendering, block assets, and packet synchronization.
+> [!NOTE]
+> The mod ID remains `aeronautics_delivery_quests` for full world-save, config, and registry compatibility with earlier releases. Existing worlds, configs, and quest data carry over untouched.
+
+**TNM Aeronautics Quests must be installed on both the client and server** (or just the client for singleplayer) to handle custom UI rendering, block assets, and packet synchronization.
 
 ---
 
@@ -43,7 +46,7 @@ Best of all: **ADQ must be installed on both the client and server** (or just th
 > [!NOTE]
 > All `/adq` commands require operator permissions (Level 2+). Regular players must use the physical **Delivery Quests Table** block to open the board, cancel contracts, or reissue compasses.
 
-*   `/adq` - `[Admin]` Open the virtual Aeronautics Quest Board & command control panel.
+*   `/adq` - `[Admin]` Open the virtual Quest Board & command control panel.
 *   `/adq cancel` - `[Admin]` Abandon your current contract (recalls physical cargo and clears compasses).
 *   `/adq compass` - `[Admin]` Re-issue your Quest Delivery Compass (only if on an active quest and you don't already have one).
 *   `/adq generate` - `[Admin]` Force-triggers a background procedural quest generation.
@@ -51,5 +54,3 @@ Best of all: **ADQ must be installed on both the client and server** (or just th
 *   `/adq delete <index>` - `[Admin]` Cleanly force-deletes a specific board quest.
 *   `/adq deleteall` - `[Admin]` Purge all quests from the board.
 *   `/adq reload` - `[Admin]` Reload quests, player cooldowns, and custom quest templates from disk.
-
-

@@ -24,7 +24,7 @@ import java.util.*;
 
 /**
  * ==================================================================================
- *                       AERONAUTICS DELIVERY QUESTS - GENERATOR
+ *                       TNM AERONAUTICS QUESTS - GENERATOR
  * ==================================================================================
  * This class orchestrates the lifecycle, loading, and generation of delivery quests.
  * 
@@ -177,7 +177,7 @@ public class QuestGenerator {
                     String content = new String(Files.readAllBytes(customQuestsPath));
                     if (content.contains("minecraft:emerald:300") || content.contains("minecraft:emerald:640")) {
                         needsGen = true;
-                        LOGGER.info("[ADQ] Outdated custom_quests.json detected. Overwriting with updated 1.0.2 economy values.");
+                        LOGGER.info("[TNM Quests] Outdated custom_quests.json detected. Overwriting with updated 1.0.2 economy values.");
                     }
                 } catch (Exception e) {
                     needsGen = true;
@@ -188,7 +188,7 @@ public class QuestGenerator {
                 try (Writer writer = Files.newBufferedWriter(customQuestsPath)) {
                     GSON.toJson(DEFAULT_TEMPLATES, writer);
                 }
-                LOGGER.info("[ADQ] Generated example custom_quests.json template.");
+                LOGGER.info("[TNM Quests] Generated example custom_quests.json template.");
             }
             
             try (Reader reader = Files.newBufferedReader(customQuestsPath)) {
@@ -196,10 +196,10 @@ public class QuestGenerator {
                 if (loaded != null) {
                     customTemplates.addAll(loaded);
                 }
-                LOGGER.info("[ADQ] Loaded {} custom quest templates from custom_quests.json", customTemplates.size());
+                LOGGER.info("[TNM Quests] Loaded {} custom quest templates from custom_quests.json", customTemplates.size());
             }
         } catch (Exception e) {
-            LOGGER.error("[ADQ] Failed to load custom quest templates", e);
+            LOGGER.error("[TNM Quests] Failed to load custom quest templates", e);
         }
     }
 
@@ -215,7 +215,7 @@ public class QuestGenerator {
             loadQuests();
             loadCooldowns();
         } catch (Exception e) {
-            LOGGER.error("[ADQ] Failed to initialize quest file path", e);
+            LOGGER.error("[TNM Quests] Failed to initialize quest file path", e);
         }
     }
 
@@ -223,9 +223,9 @@ public class QuestGenerator {
         if (questFilePath == null) return;
         try (Writer writer = Files.newBufferedWriter(questFilePath)) {
             GSON.toJson(availableQuests, writer);
-            LOGGER.info("[ADQ] Successfully saved {} quests to {}", availableQuests.size(), questFilePath.getFileName());
+            LOGGER.info("[TNM Quests] Successfully saved {} quests to {}", availableQuests.size(), questFilePath.getFileName());
         } catch (IOException e) {
-            LOGGER.error("[ADQ] Failed to save quests to file", e);
+            LOGGER.error("[TNM Quests] Failed to save quests to file", e);
         }
     }
 
@@ -242,9 +242,9 @@ public class QuestGenerator {
             if (loaded != null) {
                 availableQuests.addAll(loaded);
             }
-            LOGGER.info("[ADQ] Loaded {} quests from {}", availableQuests.size(), questFilePath.getFileName());
+            LOGGER.info("[TNM Quests] Loaded {} quests from {}", availableQuests.size(), questFilePath.getFileName());
         } catch (IOException e) {
-            LOGGER.error("[ADQ] Failed to load quests from file", e);
+            LOGGER.error("[TNM Quests] Failed to load quests from file", e);
         }
     }
 
@@ -256,9 +256,9 @@ public class QuestGenerator {
                 stringMap.put(entry.getKey().toString(), entry.getValue());
             }
             GSON.toJson(stringMap, writer);
-            LOGGER.info("[ADQ] Successfully saved {} cooldowns to {}", playerCooldowns.size(), cooldownFilePath.getFileName());
+            LOGGER.info("[TNM Quests] Successfully saved {} cooldowns to {}", playerCooldowns.size(), cooldownFilePath.getFileName());
         } catch (IOException e) {
-            LOGGER.error("[ADQ] Failed to save cooldowns to file", e);
+            LOGGER.error("[TNM Quests] Failed to save cooldowns to file", e);
         }
     }
 
@@ -274,13 +274,13 @@ public class QuestGenerator {
                     try {
                         playerCooldowns.put(UUID.fromString(entry.getKey()), entry.getValue());
                     } catch (IllegalArgumentException e) {
-                        LOGGER.error("[ADQ] Invalid UUID in cooldown file: " + entry.getKey(), e);
+                        LOGGER.error("[TNM Quests] Invalid UUID in cooldown file: " + entry.getKey(), e);
                     }
                 }
             }
-            LOGGER.info("[ADQ] Loaded {} cooldowns from {}", playerCooldowns.size(), cooldownFilePath.getFileName());
+            LOGGER.info("[TNM Quests] Loaded {} cooldowns from {}", playerCooldowns.size(), cooldownFilePath.getFileName());
         } catch (IOException e) {
-            LOGGER.error("[ADQ] Failed to load cooldowns from file", e);
+            LOGGER.error("[TNM Quests] Failed to load cooldowns from file", e);
         }
     }
 
@@ -317,14 +317,14 @@ public class QuestGenerator {
         }
         // Acquire concurrency lock to prevent multiple simultaneous background generation threads
         if (!isGenerating.compareAndSet(false, true)) {
-            LOGGER.info("[ADQ] Quest generation is already running. Skipping duplicate invocation.");
+            LOGGER.info("[TNM Quests] Quest generation is already running. Skipping duplicate invocation.");
             return;
         }
  
         // Resync to all players to update the generator button state immediately (greys out generate buttons)
         level.getServer().execute(() -> QuestBoardMenuHandler.resyncToAllPlayers(level.getServer()));
  
-        LOGGER.info("[ADQ] Triggering periodic quest generation asynchronously...");
+        LOGGER.info("[TNM Quests] Triggering periodic quest generation asynchronously...");
 
         boolean useCustom = ADQConfig.QUEST_GEN_MODE.get() == ADQConfig.QuestGenerationMode.CUSTOM;
         List<CustomQuestTemplate> templatesSource = customTemplates.isEmpty() ? DEFAULT_TEMPLATES : customTemplates;
@@ -373,10 +373,10 @@ public class QuestGenerator {
                     }
                     saveQuests();
 
-                    LOGGER.info("[ADQ] Generated custom coordinates quest: '{}' [{} class, {}kpg, Schematic: {}] from {} to {}", 
+                    LOGGER.info("[TNM Quests] Generated custom coordinates quest: '{}' [{} class, {}kpg, Schematic: {}] from {} to {}", 
                             name, weightClass, (int)actualWeight, quest.getSchematicName(), startingPos.toShortString(), endingPos.toShortString());
                 } catch (Exception e) {
-                    LOGGER.error("[ADQ] Error finalising custom coords quest on server thread", e);
+                    LOGGER.error("[TNM Quests] Error finalising custom coords quest on server thread", e);
                 } finally {
                     isGenerating.set(false);
                     if (triggerPlayerUuid != null) {
@@ -407,7 +407,7 @@ public class QuestGenerator {
                     if (villageHolderSet.isPresent()) {
                         targetHolderSet = villageHolderSet.get();
                     } else {
-                        LOGGER.warn("[ADQ] Village structure tag not found in registry! Aborting quest generation.");
+                        LOGGER.warn("[TNM Quests] Village structure tag not found in registry! Aborting quest generation.");
                         return;
                     }
                 } else if (locMode == ADQConfig.QuestLocationMode.ANY_STRUCTURE) {
@@ -416,7 +416,7 @@ public class QuestGenerator {
                         allHolders.add(ref);
                     }
                     if (allHolders.isEmpty()) {
-                        LOGGER.warn("[ADQ] No structures found in registry! Aborting quest generation.");
+                        LOGGER.warn("[TNM Quests] No structures found in registry! Aborting quest generation.");
                         return;
                     }
                     targetHolderSet = HolderSet.direct(allHolders);
@@ -452,7 +452,7 @@ public class QuestGenerator {
                     searchCenter = level.getSharedSpawnPos();
                 }
 
-                LOGGER.info("[ADQ] Searching quest origin around center {} with radius {} blocks.", 
+                LOGGER.info("[TNM Quests] Searching quest origin around center {} with radius {} blocks.", 
                         searchCenter.toShortString(), (int)R);
 
                 BlockPos startPosRaw = null;
@@ -647,10 +647,10 @@ public class QuestGenerator {
                         }
                         saveQuests();
 
-                        LOGGER.info("[ADQ] Generated new quest: '{}' [{} class, {}kpg, Schematic: {}] from {} to {}", 
+                        LOGGER.info("[TNM Quests] Generated new quest: '{}' [{} class, {}kpg, Schematic: {}] from {} to {}", 
                                 name, weightClass, (int)actualWeight, quest.getSchematicName(), startingPos.toShortString(), endingPos.toShortString());
                     } catch (Exception e) {
-                        LOGGER.error("[ADQ] Error finalising quest on server thread", e);
+                        LOGGER.error("[TNM Quests] Error finalising quest on server thread", e);
                     } finally {
                         isGenerating.set(false);
                         if (triggerPlayerUuid != null) {
@@ -665,7 +665,7 @@ public class QuestGenerator {
                 });
 
             } catch (Exception e) {
-                LOGGER.error("[ADQ] Error in async quest generator thread", e);
+                LOGGER.error("[TNM Quests] Error in async quest generator thread", e);
             } finally {
                 if (!scheduledFinalization) {
                     isGenerating.set(false);
@@ -676,11 +676,11 @@ public class QuestGenerator {
     }
 
     private static void announceGenerationFailure(ServerLevel level) {
-        LOGGER.warn("[ADQ] Failed to locate suitable trade routes within distance and world border limits.");
+        LOGGER.warn("[TNM Quests] Failed to locate suitable trade routes within distance and world border limits.");
         level.getServer().execute(() -> {
             if (ADQConfig.ANNOUNCE_GEN_FAIL.get()) {
                 level.getServer().getPlayerList().broadcastSystemMessage(
-                    net.minecraft.network.chat.Component.literal("§6§l[ADQ] §cFailed to procedurally generate a new trade contract. No suitable trade routes found within the world border."),
+                    net.minecraft.network.chat.Component.literal("§6§l[TNM Quests] §cFailed to procedurally generate a new trade contract. No suitable trade routes found within the world border."),
                     false
                 );
             }
@@ -720,7 +720,7 @@ public class QuestGenerator {
                 return new ParsedCoords(x, y, z, true);
             }
         } catch (NumberFormatException e) {
-            LOGGER.error("[ADQ] Failed to parse coordinates: " + coordStr, e);
+            LOGGER.error("[TNM Quests] Failed to parse coordinates: " + coordStr, e);
         }
         return null;
     }

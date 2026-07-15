@@ -71,7 +71,7 @@ public class QuestBoardMenuHandler {
             return;
         }
         QuestGenerator.generateNewQuestAsync(player.serverLevel(), player.getUUID());
-        player.sendSystemMessage(Component.literal("§a§l[ADQ] Admin: Procedural quest generation started in background."));
+        player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Admin: Procedural quest generation started in background."));
     }
 
     /**
@@ -94,7 +94,7 @@ public class QuestBoardMenuHandler {
         for (int i = 0; i < needed; i++) {
             QuestGenerator.generateNewQuestAsync(player.serverLevel(), player.getUUID());
         }
-        player.sendSystemMessage(Component.literal("§a§l[ADQ] Admin: Triggered procedural generation for §e" + needed + " §acontracts."));
+        player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Admin: Triggered procedural generation for §e" + needed + " §acontracts."));
     }
 
     public static void resyncToAllPlayers(net.minecraft.server.MinecraftServer server) {
@@ -134,7 +134,7 @@ public class QuestBoardMenuHandler {
         }
 
         if (targetQuest == null) {
-            player.sendSystemMessage(Component.literal("§c[ADQ] Contract not found on the board!"));
+            player.sendSystemMessage(Component.literal("§c[TNM Quests] Contract not found on the board!"));
             return;
         }
 
@@ -168,12 +168,12 @@ public class QuestBoardMenuHandler {
         QuestGenerator.saveQuests();
 
         double distToPickup = Math.sqrt(player.blockPosition().distSqr(targetQuest.getStartingPos()));
-        player.sendSystemMessage(Component.literal("§a§l[ADQ] Contract Accepted: §e" + targetQuest.getName()));
+        player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Contract Accepted: §e" + targetQuest.getName()));
         player.sendSystemMessage(Component.literal("§7Proceed to the starting location at " + targetQuest.getStartingPos().toShortString() + " (§e" + (int)distToPickup + " blocks§7) to secure the cargo."));
 
         if (player.getServer() != null && ADQConfig.ANNOUNCE_ACCEPT.get()) {
             player.getServer().getPlayerList().broadcastSystemMessage(
-                Component.literal("§6§l[ADQ] §a" + player.getName().getString() + " §7has accepted the contract: §e" + targetQuest.getName()),
+                Component.literal("§6§l[TNM Quests] §a" + player.getName().getString() + " §7has accepted the contract: §e" + targetQuest.getName()),
                 false
             );
         }
@@ -205,11 +205,11 @@ public class QuestBoardMenuHandler {
         activeQuest.setAcceptedTime(0);
 
         QuestGenerator.saveQuests();
-        player.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Canceled: §fThe delivery cargo has been recalled."));
+        player.sendSystemMessage(Component.literal("§c§l[TNM Quests] Quest Canceled: §fThe delivery cargo has been recalled."));
 
         if (player.getServer() != null && ADQConfig.ANNOUNCE_CANCEL.get()) {
             player.getServer().getPlayerList().broadcastSystemMessage(
-                Component.literal("§6§l[ADQ] §c" + player.getName().getString() + " §7has canceled the contract: §e" + activeQuest.getName() + "§7. Cargo recalled."),
+                Component.literal("§6§l[TNM Quests] §c" + player.getName().getString() + " §7has canceled the contract: §e" + activeQuest.getName() + "§7. Cargo recalled."),
                 false
             );
         }
@@ -254,14 +254,14 @@ public class QuestBoardMenuHandler {
                     ServerPlayer p = (ServerPlayer) player.serverLevel().getPlayerByUUID(quest.getAcceptedBy());
                     if (p != null) {
                         MarkerManager.clearMarkers(p, quest);
-                        p.sendSystemMessage(Component.literal("§c§l[ADQ] Quest Force Deleted by Admin: §fThe delivery cargo has been recalled."));
+                        p.sendSystemMessage(Component.literal("§c§l[TNM Quests] Quest Force Deleted by Admin: §fThe delivery cargo has been recalled."));
                     }
                     CargoAssembler.removeCargo(player.serverLevel(), quest);
                 }
             }
             quests.clear();
             QuestGenerator.saveQuests();
-            player.sendSystemMessage(Component.literal("§a§l[ADQ] Admin: Successfully deleted all " + count + " quests."));
+            player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Admin: Successfully deleted all " + count + " quests."));
             ADQEventHandler.clearActionCooldown(player, "delete_all");
         }
         resyncToAllPlayers(player.getServer());
@@ -275,11 +275,11 @@ public class QuestBoardMenuHandler {
         try {
             QuestGenerator.loadQuests();
             QuestGenerator.loadCooldowns();
-            player.sendSystemMessage(Component.literal("§a§l[ADQ] Admin: Quests and Cooldowns successfully reloaded from disk!"));
+            player.sendSystemMessage(Component.literal("§a§l[TNM Quests] Admin: Quests and Cooldowns successfully reloaded from disk!"));
             ADQEventHandler.clearActionCooldown(player, "reload");
             resyncToAllPlayers(player.getServer());
         } catch (Exception e) {
-            player.sendSystemMessage(Component.literal("§cFailed to reload ADQ data: " + e.getMessage()));
+            player.sendSystemMessage(Component.literal("§cFailed to reload quest data: " + e.getMessage()));
         }
     }
 
