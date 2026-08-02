@@ -392,7 +392,9 @@ public class QuestBoardScreen extends AbstractSimiScreen {
                             String[] parts = rawReward.split(":");
                             if (parts.length >= 2) {
                                 String rName = parts[1].replace("_", " ");
-                                rName = Character.toUpperCase(rName.charAt(0)) + rName.substring(1);
+                                if (!rName.isEmpty()) {
+                                    rName = Character.toUpperCase(rName.charAt(0)) + rName.substring(1);
+                                }
                                 String count = parts.length > 2 ? parts[2] : "1";
                                 rewardStrings.add(rName + " x" + count);
                             }
