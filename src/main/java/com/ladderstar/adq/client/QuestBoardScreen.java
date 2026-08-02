@@ -88,11 +88,14 @@ public class QuestBoardScreen extends AbstractSimiScreen {
 
         // Find player's active quest
         QuestModel active = null;
-        UUID playerUuid = Minecraft.getInstance().player.getUUID();
-        for (QuestModel quest : this.quests) {
-            if (playerUuid.equals(quest.getAcceptedBy()) && !quest.isCompleted()) {
-                active = quest;
-                break;
+        net.minecraft.client.player.LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null) {
+            UUID playerUuid = player.getUUID();
+            for (QuestModel quest : this.quests) {
+                if (playerUuid.equals(quest.getAcceptedBy()) && !quest.isCompleted()) {
+                    active = quest;
+                    break;
+                }
             }
         }
         this.activeQuest = active;
