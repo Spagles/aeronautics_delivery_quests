@@ -1001,13 +1001,11 @@ public class QuestGenerator {
             net.minecraft.server.level.ServerChunkCache chunkSource = level.getChunkSource();
             ChunkPos ticketPos = new ChunkPos(candidateChunkX, candidateChunkZ);
             chunkSource.addRegionTicket(RANDOM_SEARCH_TICKET, ticketPos, 2, ticketPos);
-            java.util.concurrent.CompletableFuture
-                .supplyAsync(() -> chunkSource.getChunkFuture(
+            chunkSource.getChunkFuture(
                             candidateChunkX,
                             candidateChunkZ,
                             net.minecraft.world.level.chunk.status.ChunkStatus.FULL,
-                            true))
-                .thenCompose(chunkFuture -> chunkFuture)
+                            true)
                 .whenComplete((chunkResult, error) -> {
                     try {
                         enqueueRandomSearchStep(level.getServer(), epoch, () -> {
