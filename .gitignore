@@ -2,6 +2,11 @@
 .gradle/
 build/
 
+# Third-party mod jars used for compilation.
+# These are other projects' binaries and are not redistributed here.
+# See README "Building from source" for how to populate this directory.
+libs/
+
 # IDE files
 .idea/
 *.iml

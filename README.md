@@ -72,3 +72,45 @@ Route discovery runs asynchronously, while chunk requests and terrain validation
 *   `/adq delete <index>` - `[Admin]` Cleanly force-deletes a specific board quest.
 *   `/adq deleteall` - `[Admin]` Purge all quests from the board.
 *   `/adq reload` - `[Admin]` Reload quests, player cooldowns, and custom quest templates from disk.
+
+---
+
+## 🔨 Building from Source
+
+This repository does not redistribute third-party mod binaries. The build
+compiles against them, so you must supply them yourself before building.
+
+1. Create a `libs/` directory in the project root (it is gitignored).
+2. Download the following jars from their official sources — CurseForge,
+   Modrinth, or the mod's own distribution page — and place them in `libs/`:
+
+   | Jar | Source |
+   |---|---|
+   | `create-1.21.1-6.0.10.jar` | Create |
+   | `flywheel-neoforge-1.21.1-1.0.6.jar` | Flywheel |
+   | `ponder-neoforge-1.0.82+mc1.21.1.jar` | Ponder |
+   | `Registrate-MC1.21-1.3.0+67.jar` | Registrate |
+   | `sable-companion-common-1.21.1-1.6.0.jar` | Sable |
+   | `ftb-chunks-neoforge-2101.1.14.jar` | FTB Chunks |
+   | `ftb-library-neoforge-2101.1.31.jar` | FTB Library |
+   | `ftb-teams-neoforge-2101.1.10.jar` | FTB Teams |
+   | Create: Aeronautics | Create: Aeronautics |
+   | Offroad | Offroad |
+
+   The FTB jars are compile-only; they are excluded from the runtime classpath.
+
+3. Build:
+
+   ```bash
+   ./gradlew build
+   ```
+
+   Or produce the publishable CurseForge/Modrinth artifacts:
+
+   ```bash
+   ./gradlew clean test packageRelease
+   ```
+
+Publishing credentials (`curseforge_api_key`, `modrinth_token`) must be set as
+environment variables or in your local `~/.gradle/gradle.properties`. Never
+commit them to this repository.
